@@ -1,0 +1,2315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://www.pegatroncorp.com/SFISWebService/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://www.pegatroncorp.com/SFISWebService/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">SFIS Web Services for TSP[v1.62 (SOA)]</wsdl:documentation>
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.pegatroncorp.com/SFISWebService/">
+      <s:element name="GetDatabaseInformation">
+        <s:complexType />
+      </s:element>
+      <s:element name="GetDatabaseInformationResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetDatabaseInformationResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOGINOUT">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="op" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="password" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOGINOUTResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_LOGINOUTResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOGINOUT_PROGID">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="op" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="password" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="PROGID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SRC" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="VER" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOGINOUT_PROGIDResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_LOGINOUT_PROGIDResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_CHKROUTE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="checkFlag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="checkData" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="type" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_CHKROUTEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_CHKROUTEResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_CHKROUTE_AOILOC">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="checkFlag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="checkData" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="type" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="aoiloc" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_CHKROUTE_AOILOCResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_CHKROUTE_AOILOCResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETVERSION">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ChkData" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ChkData2" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETVERSIONResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_GETVERSIONResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_RESULT">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="error" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="CPKFlag" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_RESULTResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_RESULTResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_RESULT_MASSDATA">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="error" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="CPKFlag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="aoiloc" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data3" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data4" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data5" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data6" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data7" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data8" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_RESULT_MASSDATAResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_RESULT_MASSDATAResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETIMAC">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="imacnum" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETIMACResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_GETIMACResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETIMAC_T">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="imacnum" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="type" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETIMAC_TResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_GETIMAC_TResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_REPAIR">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TYPE" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DEV" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="REASON" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DUTY" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="NGRP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_REPAIRResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_REPAIRResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_REPAIR_LOC">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TYPE" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DEV" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="REASON" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DUTY" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="NGRP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="TSP" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="LOC" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_REPAIR_LOCResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_REPAIR_LOCResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_DEVIF_MO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="MO" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_DEVIF_MOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_DEVIF_MOResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETI1394">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="status" type="s:int" />
+            <s:element minOccurs="1" maxOccurs="1" name="I1394NUM" type="s:int" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETI1394Response">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_GETI1394Result" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETLABEL">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DEV" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="status" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_GETLABELResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_GETLABELResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOADKEY">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="SNTYPE" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DATA" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="OP" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOADKEYResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_LOADKEYResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_SSD_INPUTDATA">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="device" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_SSD_INPUTDATAResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_SSD_INPUTDATAResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_INPUTGSDATA">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_INPUTGSDATAResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_INPUTGSDATAResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_ONLINE_REWORK_N">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data3" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="flag" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_ONLINE_REWORK_NResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_ONLINE_REWORK_NResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_SEND_MAIL">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="subject" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sendto" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="sendtext" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_SEND_MAILResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_SEND_MAILResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_ASSIGN_DEVICE">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="type" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DEVType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="DEVID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ACTType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="ISN" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="flag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="data2" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_ASSIGN_DEVICEResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_ASSIGN_DEVICEResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOADINFO">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pFlag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pKey1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pKey2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pLndata1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pLndata2" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pLndata3" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pLndata4" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pActtype" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pUserid" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_LOADINFOResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_LOADINFOResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_TSP_GET_INPUTDATA">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="programId" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="programPassword" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pFlag" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pType" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pData" type="s:string" />
+            <s:element minOccurs="1" maxOccurs="1" name="pDev" type="s:int" />
+            <s:element minOccurs="0" maxOccurs="1" name="pChkData1" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="pChkData2" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="WTSP_TSP_GET_INPUTDATAResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="WTSP_TSP_GET_INPUTDATAResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="string" nillable="true" type="s:string" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="GetDatabaseInformationSoapIn">
+    <wsdl:part name="parameters" element="tns:GetDatabaseInformation" />
+  </wsdl:message>
+  <wsdl:message name="GetDatabaseInformationSoapOut">
+    <wsdl:part name="parameters" element="tns:GetDatabaseInformationResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_LOGINOUT" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_LOGINOUTResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_LOGINOUT_PROGID" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_LOGINOUT_PROGIDResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTESoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_CHKROUTE" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTESoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_CHKROUTEResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_CHKROUTE_AOILOC" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_CHKROUTE_AOILOCResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_GETVERSION" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_GETVERSIONResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_RESULT" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_RESULTResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATASoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_RESULT_MASSDATA" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATASoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_RESULT_MASSDATAResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_GETIMAC" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_GETIMACResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_TSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_GETIMAC_T" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_TSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_GETIMAC_TResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_REPAIR" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_REPAIRResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_REPAIR_LOC" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_REPAIR_LOCResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_DEVIF_MO" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_DEVIF_MOResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394SoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_GETI1394" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394SoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_GETI1394Response" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_GETLABEL" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_GETLABELResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_LOADKEY" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_LOADKEYResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATASoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_SSD_INPUTDATA" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATASoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_SSD_INPUTDATAResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATASoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_INPUTGSDATA" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATASoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_INPUTGSDATAResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_ONLINE_REWORK_N" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_ONLINE_REWORK_NResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_SEND_MAIL" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_SEND_MAILResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICESoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_ASSIGN_DEVICE" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICESoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_ASSIGN_DEVICEResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOSoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_LOADINFO" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOSoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_LOADINFOResponse" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATASoapIn">
+    <wsdl:part name="parameters" element="tns:WTSP_TSP_GET_INPUTDATA" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATASoapOut">
+    <wsdl:part name="parameters" element="tns:WTSP_TSP_GET_INPUTDATAResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetDatabaseInformationHttpGetIn" />
+  <wsdl:message name="GetDatabaseInformationHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="op" type="s:string" />
+    <wsdl:part name="password" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="op" type="s:string" />
+    <wsdl:part name="password" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="PROGID" type="s:string" />
+    <wsdl:part name="SRC" type="s:string" />
+    <wsdl:part name="VER" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTEHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="checkFlag" type="s:string" />
+    <wsdl:part name="checkData" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTEHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="checkFlag" type="s:string" />
+    <wsdl:part name="checkData" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="aoiloc" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="ChkData" type="s:string" />
+    <wsdl:part name="ChkData2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="error" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="CPKFlag" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATAHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="error" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="CPKFlag" type="s:string" />
+    <wsdl:part name="aoiloc" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+    <wsdl:part name="data3" type="s:string" />
+    <wsdl:part name="data4" type="s:string" />
+    <wsdl:part name="data5" type="s:string" />
+    <wsdl:part name="data6" type="s:string" />
+    <wsdl:part name="data7" type="s:string" />
+    <wsdl:part name="data8" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATAHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="imacnum" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_THttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="imacnum" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_THttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="TYPE" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="REASON" type="s:string" />
+    <wsdl:part name="DUTY" type="s:string" />
+    <wsdl:part name="NGRP" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="TYPE" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="REASON" type="s:string" />
+    <wsdl:part name="DUTY" type="s:string" />
+    <wsdl:part name="NGRP" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="LOC" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="MO" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394HttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="I1394NUM" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394HttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="SNTYPE" type="s:string" />
+    <wsdl:part name="DATA" type="s:string" />
+    <wsdl:part name="OP" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATAHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATAHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATAHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATAHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="data1" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+    <wsdl:part name="data3" type="s:string" />
+    <wsdl:part name="flag" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="subject" type="s:string" />
+    <wsdl:part name="sendto" type="s:string" />
+    <wsdl:part name="sendtext" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICEHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="DEVType" type="s:string" />
+    <wsdl:part name="DEVID" type="s:string" />
+    <wsdl:part name="ACTType" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="flag" type="s:string" />
+    <wsdl:part name="data1" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICEHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="pType" type="s:string" />
+    <wsdl:part name="pFlag" type="s:string" />
+    <wsdl:part name="pKey1" type="s:string" />
+    <wsdl:part name="pKey2" type="s:string" />
+    <wsdl:part name="pLndata1" type="s:string" />
+    <wsdl:part name="pLndata2" type="s:string" />
+    <wsdl:part name="pLndata3" type="s:string" />
+    <wsdl:part name="pLndata4" type="s:string" />
+    <wsdl:part name="pActtype" type="s:string" />
+    <wsdl:part name="pUserid" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATAHttpGetIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="pFlag" type="s:string" />
+    <wsdl:part name="pType" type="s:string" />
+    <wsdl:part name="pData" type="s:string" />
+    <wsdl:part name="pDev" type="s:string" />
+    <wsdl:part name="pChkData1" type="s:string" />
+    <wsdl:part name="pChkData2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATAHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="GetDatabaseInformationHttpPostIn" />
+  <wsdl:message name="GetDatabaseInformationHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="op" type="s:string" />
+    <wsdl:part name="password" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUTHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="op" type="s:string" />
+    <wsdl:part name="password" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="PROGID" type="s:string" />
+    <wsdl:part name="SRC" type="s:string" />
+    <wsdl:part name="VER" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOGINOUT_PROGIDHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTEHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="checkFlag" type="s:string" />
+    <wsdl:part name="checkData" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTEHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="checkFlag" type="s:string" />
+    <wsdl:part name="checkData" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="aoiloc" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_CHKROUTE_AOILOCHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="ChkData" type="s:string" />
+    <wsdl:part name="ChkData2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETVERSIONHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="error" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="CPKFlag" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULTHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATAHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="error" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="CPKFlag" type="s:string" />
+    <wsdl:part name="aoiloc" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+    <wsdl:part name="data3" type="s:string" />
+    <wsdl:part name="data4" type="s:string" />
+    <wsdl:part name="data5" type="s:string" />
+    <wsdl:part name="data6" type="s:string" />
+    <wsdl:part name="data7" type="s:string" />
+    <wsdl:part name="data8" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_RESULT_MASSDATAHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="imacnum" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMACHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_THttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="imacnum" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETIMAC_THttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="TYPE" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="REASON" type="s:string" />
+    <wsdl:part name="DUTY" type="s:string" />
+    <wsdl:part name="NGRP" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIRHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="TYPE" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="REASON" type="s:string" />
+    <wsdl:part name="DUTY" type="s:string" />
+    <wsdl:part name="NGRP" type="s:string" />
+    <wsdl:part name="TSP" type="s:string" />
+    <wsdl:part name="LOC" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_REPAIR_LOCHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="MO" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_DEVIF_MOHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394HttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+    <wsdl:part name="I1394NUM" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETI1394HttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="DEV" type="s:string" />
+    <wsdl:part name="status" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_GETLABELHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="SNTYPE" type="s:string" />
+    <wsdl:part name="DATA" type="s:string" />
+    <wsdl:part name="OP" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADKEYHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATAHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="device" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SSD_INPUTDATAHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATAHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="data" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_INPUTGSDATAHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="data1" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+    <wsdl:part name="data3" type="s:string" />
+    <wsdl:part name="flag" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ONLINE_REWORK_NHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="subject" type="s:string" />
+    <wsdl:part name="sendto" type="s:string" />
+    <wsdl:part name="sendtext" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_SEND_MAILHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICEHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="type" type="s:string" />
+    <wsdl:part name="DEVType" type="s:string" />
+    <wsdl:part name="DEVID" type="s:string" />
+    <wsdl:part name="ACTType" type="s:string" />
+    <wsdl:part name="ISN" type="s:string" />
+    <wsdl:part name="flag" type="s:string" />
+    <wsdl:part name="data1" type="s:string" />
+    <wsdl:part name="data2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_ASSIGN_DEVICEHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="pType" type="s:string" />
+    <wsdl:part name="pFlag" type="s:string" />
+    <wsdl:part name="pKey1" type="s:string" />
+    <wsdl:part name="pKey2" type="s:string" />
+    <wsdl:part name="pLndata1" type="s:string" />
+    <wsdl:part name="pLndata2" type="s:string" />
+    <wsdl:part name="pLndata3" type="s:string" />
+    <wsdl:part name="pLndata4" type="s:string" />
+    <wsdl:part name="pActtype" type="s:string" />
+    <wsdl:part name="pUserid" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_LOADINFOHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATAHttpPostIn">
+    <wsdl:part name="programId" type="s:string" />
+    <wsdl:part name="programPassword" type="s:string" />
+    <wsdl:part name="pFlag" type="s:string" />
+    <wsdl:part name="pType" type="s:string" />
+    <wsdl:part name="pData" type="s:string" />
+    <wsdl:part name="pDev" type="s:string" />
+    <wsdl:part name="pChkData1" type="s:string" />
+    <wsdl:part name="pChkData2" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="WTSP_TSP_GET_INPUTDATAHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:portType name="SFISTSPWebServiceSoap">
+    <wsdl:operation name="GetDatabaseInformation">
+      <wsdl:input message="tns:GetDatabaseInformationSoapIn" />
+      <wsdl:output message="tns:GetDatabaseInformationSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <wsdl:input message="tns:WTSP_LOGINOUTSoapIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUTSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <wsdl:input message="tns:WTSP_LOGINOUT_PROGIDSoapIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUT_PROGIDSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <wsdl:input message="tns:WTSP_CHKROUTESoapIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <wsdl:input message="tns:WTSP_CHKROUTE_AOILOCSoapIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTE_AOILOCSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <wsdl:input message="tns:WTSP_GETVERSIONSoapIn" />
+      <wsdl:output message="tns:WTSP_GETVERSIONSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <wsdl:input message="tns:WTSP_RESULTSoapIn" />
+      <wsdl:output message="tns:WTSP_RESULTSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <wsdl:input message="tns:WTSP_RESULT_MASSDATASoapIn" />
+      <wsdl:output message="tns:WTSP_RESULT_MASSDATASoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <wsdl:input message="tns:WTSP_GETIMACSoapIn" />
+      <wsdl:output message="tns:WTSP_GETIMACSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <wsdl:input message="tns:WTSP_GETIMAC_TSoapIn" />
+      <wsdl:output message="tns:WTSP_GETIMAC_TSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <wsdl:input message="tns:WTSP_REPAIRSoapIn" />
+      <wsdl:output message="tns:WTSP_REPAIRSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <wsdl:input message="tns:WTSP_REPAIR_LOCSoapIn" />
+      <wsdl:output message="tns:WTSP_REPAIR_LOCSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <wsdl:input message="tns:WTSP_DEVIF_MOSoapIn" />
+      <wsdl:output message="tns:WTSP_DEVIF_MOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <wsdl:input message="tns:WTSP_GETI1394SoapIn" />
+      <wsdl:output message="tns:WTSP_GETI1394SoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <wsdl:input message="tns:WTSP_GETLABELSoapIn" />
+      <wsdl:output message="tns:WTSP_GETLABELSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <wsdl:input message="tns:WTSP_LOADKEYSoapIn" />
+      <wsdl:output message="tns:WTSP_LOADKEYSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <wsdl:input message="tns:WTSP_SSD_INPUTDATASoapIn" />
+      <wsdl:output message="tns:WTSP_SSD_INPUTDATASoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <wsdl:input message="tns:WTSP_INPUTGSDATASoapIn" />
+      <wsdl:output message="tns:WTSP_INPUTGSDATASoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <wsdl:input message="tns:WTSP_ONLINE_REWORK_NSoapIn" />
+      <wsdl:output message="tns:WTSP_ONLINE_REWORK_NSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <wsdl:input message="tns:WTSP_SEND_MAILSoapIn" />
+      <wsdl:output message="tns:WTSP_SEND_MAILSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <wsdl:input message="tns:WTSP_ASSIGN_DEVICESoapIn" />
+      <wsdl:output message="tns:WTSP_ASSIGN_DEVICESoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <wsdl:input message="tns:WTSP_LOADINFOSoapIn" />
+      <wsdl:output message="tns:WTSP_LOADINFOSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <wsdl:input message="tns:WTSP_TSP_GET_INPUTDATASoapIn" />
+      <wsdl:output message="tns:WTSP_TSP_GET_INPUTDATASoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="SFISTSPWebServiceHttpGet">
+    <wsdl:operation name="GetDatabaseInformation">
+      <wsdl:input message="tns:GetDatabaseInformationHttpGetIn" />
+      <wsdl:output message="tns:GetDatabaseInformationHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <wsdl:input message="tns:WTSP_LOGINOUTHttpGetIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUTHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <wsdl:input message="tns:WTSP_LOGINOUT_PROGIDHttpGetIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUT_PROGIDHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <wsdl:input message="tns:WTSP_CHKROUTEHttpGetIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTEHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <wsdl:input message="tns:WTSP_CHKROUTE_AOILOCHttpGetIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTE_AOILOCHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <wsdl:input message="tns:WTSP_GETVERSIONHttpGetIn" />
+      <wsdl:output message="tns:WTSP_GETVERSIONHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <wsdl:input message="tns:WTSP_RESULTHttpGetIn" />
+      <wsdl:output message="tns:WTSP_RESULTHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <wsdl:input message="tns:WTSP_RESULT_MASSDATAHttpGetIn" />
+      <wsdl:output message="tns:WTSP_RESULT_MASSDATAHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <wsdl:input message="tns:WTSP_GETIMACHttpGetIn" />
+      <wsdl:output message="tns:WTSP_GETIMACHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <wsdl:input message="tns:WTSP_GETIMAC_THttpGetIn" />
+      <wsdl:output message="tns:WTSP_GETIMAC_THttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <wsdl:input message="tns:WTSP_REPAIRHttpGetIn" />
+      <wsdl:output message="tns:WTSP_REPAIRHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <wsdl:input message="tns:WTSP_REPAIR_LOCHttpGetIn" />
+      <wsdl:output message="tns:WTSP_REPAIR_LOCHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <wsdl:input message="tns:WTSP_DEVIF_MOHttpGetIn" />
+      <wsdl:output message="tns:WTSP_DEVIF_MOHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <wsdl:input message="tns:WTSP_GETI1394HttpGetIn" />
+      <wsdl:output message="tns:WTSP_GETI1394HttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <wsdl:input message="tns:WTSP_GETLABELHttpGetIn" />
+      <wsdl:output message="tns:WTSP_GETLABELHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <wsdl:input message="tns:WTSP_LOADKEYHttpGetIn" />
+      <wsdl:output message="tns:WTSP_LOADKEYHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <wsdl:input message="tns:WTSP_SSD_INPUTDATAHttpGetIn" />
+      <wsdl:output message="tns:WTSP_SSD_INPUTDATAHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <wsdl:input message="tns:WTSP_INPUTGSDATAHttpGetIn" />
+      <wsdl:output message="tns:WTSP_INPUTGSDATAHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <wsdl:input message="tns:WTSP_ONLINE_REWORK_NHttpGetIn" />
+      <wsdl:output message="tns:WTSP_ONLINE_REWORK_NHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <wsdl:input message="tns:WTSP_SEND_MAILHttpGetIn" />
+      <wsdl:output message="tns:WTSP_SEND_MAILHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <wsdl:input message="tns:WTSP_ASSIGN_DEVICEHttpGetIn" />
+      <wsdl:output message="tns:WTSP_ASSIGN_DEVICEHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <wsdl:input message="tns:WTSP_LOADINFOHttpGetIn" />
+      <wsdl:output message="tns:WTSP_LOADINFOHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <wsdl:input message="tns:WTSP_TSP_GET_INPUTDATAHttpGetIn" />
+      <wsdl:output message="tns:WTSP_TSP_GET_INPUTDATAHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="SFISTSPWebServiceHttpPost">
+    <wsdl:operation name="GetDatabaseInformation">
+      <wsdl:input message="tns:GetDatabaseInformationHttpPostIn" />
+      <wsdl:output message="tns:GetDatabaseInformationHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <wsdl:input message="tns:WTSP_LOGINOUTHttpPostIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUTHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <wsdl:input message="tns:WTSP_LOGINOUT_PROGIDHttpPostIn" />
+      <wsdl:output message="tns:WTSP_LOGINOUT_PROGIDHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <wsdl:input message="tns:WTSP_CHKROUTEHttpPostIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTEHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <wsdl:input message="tns:WTSP_CHKROUTE_AOILOCHttpPostIn" />
+      <wsdl:output message="tns:WTSP_CHKROUTE_AOILOCHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <wsdl:input message="tns:WTSP_GETVERSIONHttpPostIn" />
+      <wsdl:output message="tns:WTSP_GETVERSIONHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <wsdl:input message="tns:WTSP_RESULTHttpPostIn" />
+      <wsdl:output message="tns:WTSP_RESULTHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <wsdl:input message="tns:WTSP_RESULT_MASSDATAHttpPostIn" />
+      <wsdl:output message="tns:WTSP_RESULT_MASSDATAHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <wsdl:input message="tns:WTSP_GETIMACHttpPostIn" />
+      <wsdl:output message="tns:WTSP_GETIMACHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <wsdl:input message="tns:WTSP_GETIMAC_THttpPostIn" />
+      <wsdl:output message="tns:WTSP_GETIMAC_THttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <wsdl:input message="tns:WTSP_REPAIRHttpPostIn" />
+      <wsdl:output message="tns:WTSP_REPAIRHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <wsdl:input message="tns:WTSP_REPAIR_LOCHttpPostIn" />
+      <wsdl:output message="tns:WTSP_REPAIR_LOCHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <wsdl:input message="tns:WTSP_DEVIF_MOHttpPostIn" />
+      <wsdl:output message="tns:WTSP_DEVIF_MOHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <wsdl:input message="tns:WTSP_GETI1394HttpPostIn" />
+      <wsdl:output message="tns:WTSP_GETI1394HttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <wsdl:input message="tns:WTSP_GETLABELHttpPostIn" />
+      <wsdl:output message="tns:WTSP_GETLABELHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <wsdl:input message="tns:WTSP_LOADKEYHttpPostIn" />
+      <wsdl:output message="tns:WTSP_LOADKEYHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <wsdl:input message="tns:WTSP_SSD_INPUTDATAHttpPostIn" />
+      <wsdl:output message="tns:WTSP_SSD_INPUTDATAHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <wsdl:input message="tns:WTSP_INPUTGSDATAHttpPostIn" />
+      <wsdl:output message="tns:WTSP_INPUTGSDATAHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <wsdl:input message="tns:WTSP_ONLINE_REWORK_NHttpPostIn" />
+      <wsdl:output message="tns:WTSP_ONLINE_REWORK_NHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <wsdl:input message="tns:WTSP_SEND_MAILHttpPostIn" />
+      <wsdl:output message="tns:WTSP_SEND_MAILHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <wsdl:input message="tns:WTSP_ASSIGN_DEVICEHttpPostIn" />
+      <wsdl:output message="tns:WTSP_ASSIGN_DEVICEHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <wsdl:input message="tns:WTSP_LOADINFOHttpPostIn" />
+      <wsdl:output message="tns:WTSP_LOADINFOHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <wsdl:input message="tns:WTSP_TSP_GET_INPUTDATAHttpPostIn" />
+      <wsdl:output message="tns:WTSP_TSP_GET_INPUTDATAHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SFISTSPWebServiceSoap" type="tns:SFISTSPWebServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetDatabaseInformation">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/GetDatabaseInformation" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOGINOUT" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOGINOUT_PROGID" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_CHKROUTE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_CHKROUTE_AOILOC" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETVERSION" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_RESULT" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_RESULT_MASSDATA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETIMAC" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETIMAC_T" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_REPAIR" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_REPAIR_LOC" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_DEVIF_MO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETI1394" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETLABEL" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOADKEY" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_SSD_INPUTDATA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_INPUTGSDATA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_ONLINE_REWORK_N" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_SEND_MAIL" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_ASSIGN_DEVICE" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOADINFO" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <soap:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_TSP_GET_INPUTDATA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="SFISTSPWebServiceSoap12" type="tns:SFISTSPWebServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetDatabaseInformation">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/GetDatabaseInformation" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOGINOUT" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOGINOUT_PROGID" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_CHKROUTE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_CHKROUTE_AOILOC" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETVERSION" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_RESULT" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_RESULT_MASSDATA" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETIMAC" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETIMAC_T" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_REPAIR" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_REPAIR_LOC" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_DEVIF_MO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETI1394" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_GETLABEL" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOADKEY" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_SSD_INPUTDATA" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_INPUTGSDATA" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_ONLINE_REWORK_N" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_SEND_MAIL" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_ASSIGN_DEVICE" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_LOADINFO" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <soap12:operation soapAction="http://www.pegatroncorp.com/SFISWebService/WTSP_TSP_GET_INPUTDATA" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="SFISTSPWebServiceHttpGet" type="tns:SFISTSPWebServiceHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="GetDatabaseInformation">
+      <http:operation location="/GetDatabaseInformation" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <http:operation location="/WTSP_LOGINOUT" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <http:operation location="/WTSP_LOGINOUT_PROGID" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <http:operation location="/WTSP_CHKROUTE" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <http:operation location="/WTSP_CHKROUTE_AOILOC" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <http:operation location="/WTSP_GETVERSION" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <http:operation location="/WTSP_RESULT" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <http:operation location="/WTSP_RESULT_MASSDATA" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <http:operation location="/WTSP_GETIMAC" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <http:operation location="/WTSP_GETIMAC_T" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <http:operation location="/WTSP_REPAIR" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <http:operation location="/WTSP_REPAIR_LOC" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <http:operation location="/WTSP_DEVIF_MO" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <http:operation location="/WTSP_GETI1394" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <http:operation location="/WTSP_GETLABEL" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <http:operation location="/WTSP_LOADKEY" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <http:operation location="/WTSP_SSD_INPUTDATA" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <http:operation location="/WTSP_INPUTGSDATA" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <http:operation location="/WTSP_ONLINE_REWORK_N" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <http:operation location="/WTSP_SEND_MAIL" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <http:operation location="/WTSP_ASSIGN_DEVICE" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <http:operation location="/WTSP_LOADINFO" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <http:operation location="/WTSP_TSP_GET_INPUTDATA" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="SFISTSPWebServiceHttpPost" type="tns:SFISTSPWebServiceHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="GetDatabaseInformation">
+      <http:operation location="/GetDatabaseInformation" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT">
+      <http:operation location="/WTSP_LOGINOUT" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOGINOUT_PROGID">
+      <http:operation location="/WTSP_LOGINOUT_PROGID" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE">
+      <http:operation location="/WTSP_CHKROUTE" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_CHKROUTE_AOILOC">
+      <http:operation location="/WTSP_CHKROUTE_AOILOC" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETVERSION">
+      <http:operation location="/WTSP_GETVERSION" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT">
+      <http:operation location="/WTSP_RESULT" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_RESULT_MASSDATA">
+      <http:operation location="/WTSP_RESULT_MASSDATA" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC">
+      <http:operation location="/WTSP_GETIMAC" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETIMAC_T">
+      <http:operation location="/WTSP_GETIMAC_T" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR">
+      <http:operation location="/WTSP_REPAIR" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_REPAIR_LOC">
+      <http:operation location="/WTSP_REPAIR_LOC" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_DEVIF_MO">
+      <http:operation location="/WTSP_DEVIF_MO" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETI1394">
+      <http:operation location="/WTSP_GETI1394" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_GETLABEL">
+      <http:operation location="/WTSP_GETLABEL" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADKEY">
+      <http:operation location="/WTSP_LOADKEY" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SSD_INPUTDATA">
+      <http:operation location="/WTSP_SSD_INPUTDATA" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_INPUTGSDATA">
+      <http:operation location="/WTSP_INPUTGSDATA" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ONLINE_REWORK_N">
+      <http:operation location="/WTSP_ONLINE_REWORK_N" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_SEND_MAIL">
+      <http:operation location="/WTSP_SEND_MAIL" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_ASSIGN_DEVICE">
+      <http:operation location="/WTSP_ASSIGN_DEVICE" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_LOADINFO">
+      <http:operation location="/WTSP_LOADINFO" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="WTSP_TSP_GET_INPUTDATA">
+      <http:operation location="/WTSP_TSP_GET_INPUTDATA" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="SFISTSPWebService">
+    <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">SFIS Web Services for TSP[v1.62 (SOA)]</wsdl:documentation>
+    <wsdl:port name="SFISTSPWebServiceSoap" binding="tns:SFISTSPWebServiceSoap">
+      <soap:address location="http://10.176.33.13/SFISWebService/SFISTSPWebService.asmx" />
+    </wsdl:port>
+    <wsdl:port name="SFISTSPWebServiceSoap12" binding="tns:SFISTSPWebServiceSoap12">
+      <soap12:address location="http://10.176.33.13/SFISWebService/SFISTSPWebService.asmx" />
+    </wsdl:port>
+    <wsdl:port name="SFISTSPWebServiceHttpGet" binding="tns:SFISTSPWebServiceHttpGet">
+      <http:address location="http://10.176.33.13/SFISWebService/SFISTSPWebService.asmx" />
+    </wsdl:port>
+    <wsdl:port name="SFISTSPWebServiceHttpPost" binding="tns:SFISTSPWebServiceHttpPost">
+      <http:address location="http://10.176.33.13/SFISWebService/SFISTSPWebService.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
