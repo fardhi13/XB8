@@ -92,6 +92,15 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label_yieldrate = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label_ng = new System.Windows.Forms.Label();
+            this.label_pass = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.label_total = new System.Windows.Forms.Label();
+            this.label29 = new System.Windows.Forms.Label();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ModelPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MACPicture)).BeginInit();
@@ -108,6 +117,7 @@
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // label16
@@ -784,7 +794,7 @@
             // 
             this.richTextBox_Log.Location = new System.Drawing.Point(7, 37);
             this.richTextBox_Log.Name = "richTextBox_Log";
-            this.richTextBox_Log.Size = new System.Drawing.Size(241, 820);
+            this.richTextBox_Log.Size = new System.Drawing.Size(241, 619);
             this.richTextBox_Log.TabIndex = 94;
             this.richTextBox_Log.Text = "";
             // 
@@ -843,6 +853,7 @@
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.groupBox4);
             this.panel1.Controls.Add(this.label26);
             this.panel1.Controls.Add(this.richTextBox_Log);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
@@ -898,6 +909,140 @@
             this.panel3.Size = new System.Drawing.Size(533, 862);
             this.panel3.TabIndex = 102;
             // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.label_yieldrate);
+            this.groupBox4.Controls.Add(this.label35);
+            this.groupBox4.Controls.Add(this.label_ng);
+            this.groupBox4.Controls.Add(this.label_pass);
+            this.groupBox4.Controls.Add(this.label32);
+            this.groupBox4.Controls.Add(this.label31);
+            this.groupBox4.Controls.Add(this.label_total);
+            this.groupBox4.Controls.Add(this.label29);
+            this.groupBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.groupBox4.Location = new System.Drawing.Point(7, 662);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(231, 191);
+            this.groupBox4.TabIndex = 96;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "STATUS";
+            // 
+            // label_yieldrate
+            // 
+            this.label_yieldrate.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_yieldrate.BackColor = System.Drawing.Color.White;
+            this.label_yieldrate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_yieldrate.Location = new System.Drawing.Point(135, 146);
+            this.label_yieldrate.Name = "label_yieldrate";
+            this.label_yieldrate.Size = new System.Drawing.Size(72, 20);
+            this.label_yieldrate.TabIndex = 74;
+            this.label_yieldrate.Text = "0%";
+            this.label_yieldrate.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label35
+            // 
+            this.label35.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label35.BackColor = System.Drawing.Color.White;
+            this.label35.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label35.Location = new System.Drawing.Point(6, 144);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(108, 20);
+            this.label35.TabIndex = 73;
+            this.label35.Text = "Yield Rate:";
+            this.label35.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label_ng
+            // 
+            this.label_ng.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_ng.BackColor = System.Drawing.Color.White;
+            this.label_ng.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_ng.ForeColor = System.Drawing.Color.Red;
+            this.label_ng.Location = new System.Drawing.Point(137, 102);
+            this.label_ng.Name = "label_ng";
+            this.label_ng.Size = new System.Drawing.Size(72, 20);
+            this.label_ng.TabIndex = 72;
+            this.label_ng.Text = "0";
+            this.label_ng.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label_pass
+            // 
+            this.label_pass.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_pass.BackColor = System.Drawing.Color.White;
+            this.label_pass.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_pass.ForeColor = System.Drawing.Color.Green;
+            this.label_pass.Location = new System.Drawing.Point(137, 65);
+            this.label_pass.Name = "label_pass";
+            this.label_pass.Size = new System.Drawing.Size(72, 20);
+            this.label_pass.TabIndex = 71;
+            this.label_pass.Text = "0";
+            this.label_pass.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label32
+            // 
+            this.label32.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label32.BackColor = System.Drawing.Color.White;
+            this.label32.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label32.ForeColor = System.Drawing.Color.Red;
+            this.label32.Location = new System.Drawing.Point(24, 102);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(72, 20);
+            this.label32.TabIndex = 70;
+            this.label32.Text = "NG:";
+            this.label32.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label31
+            // 
+            this.label31.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label31.BackColor = System.Drawing.Color.White;
+            this.label31.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label31.ForeColor = System.Drawing.Color.Green;
+            this.label31.Location = new System.Drawing.Point(24, 65);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(72, 20);
+            this.label31.TabIndex = 69;
+            this.label31.Text = "PASS:";
+            this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label_total
+            // 
+            this.label_total.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_total.BackColor = System.Drawing.Color.White;
+            this.label_total.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_total.Location = new System.Drawing.Point(137, 32);
+            this.label_total.Name = "label_total";
+            this.label_total.Size = new System.Drawing.Size(72, 20);
+            this.label_total.TabIndex = 68;
+            this.label_total.Text = "0";
+            this.label_total.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label29
+            // 
+            this.label29.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label29.BackColor = System.Drawing.Color.White;
+            this.label29.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label29.Location = new System.Drawing.Point(24, 35);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(72, 20);
+            this.label29.TabIndex = 67;
+            this.label29.Text = "TOTAL:";
+            this.label29.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -935,6 +1080,7 @@
             this.panel2.PerformLayout();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1005,6 +1151,15 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.GroupBox groupBox4;
+        public System.Windows.Forms.Label label_yieldrate;
+        public System.Windows.Forms.Label label35;
+        public System.Windows.Forms.Label label_ng;
+        public System.Windows.Forms.Label label_pass;
+        public System.Windows.Forms.Label label32;
+        public System.Windows.Forms.Label label31;
+        public System.Windows.Forms.Label label_total;
+        public System.Windows.Forms.Label label29;
     }
 }
 

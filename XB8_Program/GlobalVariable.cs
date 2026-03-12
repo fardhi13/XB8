@@ -10,7 +10,6 @@ namespace XB8_Program
     public class GlobalVariable
     {
         public string WatcherDir = ConfigurationManager.AppSettings["WatcherDir"];
-        public int PythonRotate = int.Parse(ConfigurationManager.AppSettings["PythonRotate"]);
 
         public int StartXPN, StartYPN, WidthPN, HeightPN;
         public int StartXMAC, StartYMAC, WidthMAC, HeightMAC;

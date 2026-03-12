@@ -26,67 +26,6 @@ namespace XB8_Program
 
         private string ip;
         private string port;
-        #region EasyModbus
-        //public void Connect(string IP, string PORT)
-        //{
-        //    ModbusClient = new ModbusClient(IP, int.Parse(PORT));
-        //    ModbusClient.Connect();
-        //    if (ModbusClient.Connected == true)
-        //    {
-        //        isConnected = true;
-        //    }
-        //}
-
-        //public void Disconnect()
-        //{
-        //    ModbusClient.Disconnect();
-        //    if (ModbusClient.Connected == false)
-        //    {
-        //        isConnected = false;
-        //    }
-
-        //}
-
-        //public bool isProductReady()
-        //{
-        //    int IndexAddress = ProductReady;
-        //    if (isConnected)
-        //    {
-        //        var dataReader = ModbusClient.ReadCoils(IndexAddress, 1);
-        //        if (dataReader[0] == true)
-        //        {
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    return false;
-        //}
-
-        //public void WriteCoilMemory(int StartAddress, bool Value)
-        //{
-        //    int IndexAddress = StartAddress;
-        //    if (ModbusClient == null || !ModbusClient.Connected)
-        //    {
-        //        return;
-        //    }
-        //    else
-        //    {
-        //        try
-        //        {
-        //            ModbusClient.WriteSingleCoil(IndexAddress, Value);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            ErrorCode = 1;
-        //            ErrorString = "[ModBus Issue] Error Occured: " + ex.Message;
-        //        }
-        //    }
-        //}
-        #endregion
-
 
         #region NModbus
         public void Connect(string IP, string PORT)
