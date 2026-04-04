@@ -9,6 +9,7 @@ namespace XB8_Program
 {
     public class GlobalVariable
     {
+        public string RunningModel = ConfigurationManager.AppSettings["RunningModel"];
         public string WatcherDir = ConfigurationManager.AppSettings["WatcherDir"];
 
         public int StartXPN, StartYPN, WidthPN, HeightPN;
@@ -21,6 +22,10 @@ namespace XB8_Program
         public int StartXRIGHTSIDE, StartYRIGHTSIDE, WidthRIGHTSIDE, HeightRIGHTSIDE;
         public int StartXFCCID, StartYFCCID, WidthFCCID, HeightFCCID;
         public int StartXLOGOAREA, StartYLOGOAREA, WidthLOGOAREA, HeightLOGOAREA;
+        public int StartXINPUT, StartYINPUT, WidthINPUT, HeightINPUT;
+        public int StartXSN, StartYSN, WidthSN, HeightSN;
+        public int StartXMADE, StartYMADE, WidthMADE, HeightMADE;
+        public int StartXREGULATION, StartYREGULATION, WidthREGULATION, HeightREGULATION;
 
         public bool IsLogoDetected = false;
 
@@ -39,6 +44,12 @@ namespace XB8_Program
         public string OCR_NetworkName;
         public string OCR_LastFourNetworkName;
         public string OCR_Password;
+
+        public string OCR_SN;
+        public string OCR_INPUT;
+        public string OCR_Made;
+        public string OCR_Regulation;
+        public string Barcode_SN;
 
         #region SFIS RESPONSE
         public string StartResult;

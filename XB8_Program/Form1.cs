@@ -39,6 +39,7 @@ namespace XB8_Program
         GlobalVariable GVL = new GlobalVariable();
         ConnectionClass CC = new ConnectionClass();
         SFISClass SFIS = new SFISClass();
+        MQTTClass MQTT = new MQTTClass();
 
         private string CurrentImagePath = "";
         private string tessPath = @"./tessdata";
@@ -50,6 +51,8 @@ namespace XB8_Program
         private int MatchScore = 0;
         private double LeftLabelScore = 0;
         private double RightLabelScore = 0;
+        private double InputScore = 0;
+        private double MadeScore = 0;
         private int SelectModel = 0;
         private int ImageRotation = 0;
         private bool isPassQR = false;
@@ -67,22 +70,54 @@ namespace XB8_Program
         private int TotalCount = 0;
         private int PassCount = 0;
         private int NgCount = 0;
+
+        string failReason = "";
+        string _Model = "";
         public Form1()
         {
             InitializeComponent();
             SFIS.SFIS_LogINOUT(1);
-            InitOnnx();
+            InitOnnx(GVL.RunningModel);
             InitPaddleOcr();
             InitTesseract();
             InitWatcher();
             InitPLC();
         }
 
-        private void InitOnnx()
+        private void InitOnnx(string modelName)
         {
-            string modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XB8.onnx");
+            _Model = modelName.ToUpperInvariant();
+
+            string modelPath = "";
+
+            if (_Model == "COM")
+            {
+                modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XB8_COM.onnx");
+            }
+            else if (_Model == "COX")
+            {
+                modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XB8_COX.onnx");
+            }
+            else
+            {
+                MessageBox.Show("Model not valid (COM/COX)");
+                return;
+            }
+
+            if (!File.Exists(modelPath))
+            {
+                MessageBox.Show($"Model not found:\n{modelPath}");
+                return;
+            }
+
+            // dispose model lama
+            _session?.Dispose();
+
+            // load model baru
             _session = new InferenceSession(modelPath);
             _inputName = _session.InputMetadata.Keys.First();
+
+            Console.WriteLine($"[MODEL SWITCHED] {_Model}");
         }
 
         private void InitPaddleOcr()
@@ -302,10 +337,19 @@ namespace XB8_Program
                 // ignore error
             }
         }
-        private void Form1_Load(object sender, EventArgs e)
+        private async void Form1_Load(object sender, EventArgs e)
         {
             ComboBox_Rotation.SelectedIndex = 2;
-            ComboBox_Model.SelectedIndex = 0;
+
+            if (_Model == "COM")
+            {
+                ComboBox_Model.SelectedIndex = 0;
+            } else if (_Model == "COX")
+            {
+                ComboBox_Model.SelectedIndex = 1;
+            }
+            
+            await MQTT.InitializeAsync();
         }
 
         private void UpdateCounter(bool isPass)
@@ -332,7 +376,7 @@ namespace XB8_Program
         private void CheckingProcess()
         {
             bool isPassModel = false, isPassFCC = false, isPassCM = false, isPassWAN = false, isPassMTA = false, isPassSN = false, isPassNetworkName = false, isPassPassword = false, 
-                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false;
+                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false, isPassInput = false, isPassMade = false, isPassRegulation = false;
 
             isScanReady = false;
             isOCRReady = false;
@@ -340,288 +384,357 @@ namespace XB8_Program
             string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
             AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
 
-
-            //SN
-            var SNChecking = SFIS.SFIS_CheckSN(GVL.QR_SN); 
-            if (SNChecking.Contains("NOT FOUND") || SNChecking.Contains("not Defined") || SNChecking.StartsWith("0") || string.IsNullOrEmpty(SNChecking))
+            if (SelectModel == 1)
             {
-                isPassSN = false;
-
-                string SFISResponse = SFIS.StringSNReader;
-                string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
-                GVL.StartResult = DATA[0];
-                GVL.TypeResult = DATA[1];
-                GVL.Model = "NOT FOUND";
-                GVL.SSID = "NOT FOUND";
-                GVL.Password = "NOT FOUND";
-                AppendLogText($"[{GVL.QR_SN}] - SN is not valid, check again and retry!", Color.Red);
-                this.Invoke(new Action(() =>
+                //SN
+                var SNChecking = SFIS.SFIS_CheckSN(GVL.QR_SN);
+                if (SNChecking.Contains("NOT FOUND") || SNChecking.Contains("not Defined") || SNChecking.StartsWith("0") || string.IsNullOrEmpty(SNChecking))
                 {
-                    SN_TextBox.ForeColor = Color.Red;
-                }));
-                SNChecking = "";
-            }
-            else if (SNChecking.Contains("GET OK") || SNChecking.StartsWith("1"))
-            {
-                string SFISResponse = SFIS.StringSNReader;
-                string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                    isPassSN = false;
 
-                GVL.StartResult = DATA[0];
-                GVL.TypeResult = DATA[1];
-                GVL.Model = DATA[2];
-                GVL.SSID = DATA[3];
-                GVL.Password = DATA[4];
-                Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
-
-                isPassSN = true;
-                AppendLogText($"[{GVL.QR_SN}] - SN is valid", Color.Green);
-                this.Invoke(new Action(() =>
+                    string SFISResponse = SFIS.StringSNReader;
+                    string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                    GVL.StartResult = DATA[0];
+                    GVL.TypeResult = DATA[1];
+                    GVL.Model = "NOT FOUND";
+                    GVL.SSID = "NOT FOUND";
+                    GVL.Password = "NOT FOUND";
+                    AppendLogText($"[{GVL.QR_SN}] - SN is not valid, check again and retry!", Color.Red);
+                    this.Invoke(new Action(() =>
+                    {
+                        SN_TextBox.ForeColor = Color.Red;
+                    }));
+                    SNChecking = "";
+                    if (!isPassSN && string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "SNFail";
+                    }
+                }
+                else if (SNChecking.Contains("GET OK") || SNChecking.StartsWith("1"))
                 {
-                    SN_TextBox.ForeColor = Color.Black;
-                }));
-                GVL.QR_SN = "";
-            }
+                    string SFISResponse = SFIS.StringSNReader;
+                    string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
 
-            //Technicolor model/PN/Comcast model
+                    GVL.StartResult = DATA[0];
+                    GVL.TypeResult = DATA[1];
+                    GVL.Model = DATA[2];
+                    GVL.SSID = DATA[3];
+                    GVL.Password = DATA[4];
+                    Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
 
-            if (GVL.OCR_PN.Equals(GVL.QR_TechnicolorModel))
-            {
-                isPassModel = true;
-                AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid", Color.Green);
-                this.Invoke(new Action(() =>
-                {
-                    PN_TextBox.ForeColor = Color.Black;
-                }));
-                GVL.QR_TechnicolorModel = "";
+                    isPassSN = true;
+                    AppendLogText($"[{GVL.QR_SN}] - SN is valid", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        SN_TextBox.ForeColor = Color.Black;
+                    }));
+                    GVL.QR_SN = "";
+                }
 
-                //if (GVL.QR_ComcastModel.Contains(GVL.Model))
-                //{
-                //    isPassModel = true;
-                //    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid", Color.Green);
-                //    this.Invoke(new Action(() =>
-                //    {
-                //        PN_TextBox.ForeColor = Color.Black;
-                //    }));
-                //    GVL.QR_TechnicolorModel = "";
-                //}
-                //else
-                //{
-                //    isPassModel = false;
-                //    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model not matched, OCR READ = [{GVL.OCR_PN}], check again and retry!", Color.Red);
-                //    this.Invoke(new Action(() =>
-                //    {
-                //        PN_TextBox.ForeColor = Color.Red;
-                //    }));
-                //    GVL.QR_TechnicolorModel = "";
-                //}
-            }
-            else
-            {
-                string fallbackModel = ProcessOCR_Tesseract(new Bitmap(ModelPicture.Image), GVL.QR_TechnicolorModel, @"[A-Z0-9]{10}");
-                if (fallbackModel == GVL.QR_TechnicolorModel)
+                //Technicolor model/PN/Comcast model
+
+                if (GVL.OCR_PN.Equals(GVL.QR_TechnicolorModel))
                 {
                     isPassModel = true;
-                    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid (Tesseract fallback)", Color.Orange);
+                    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid", Color.Green);
                     this.Invoke(new Action(() =>
                     {
-                        PN_TextBox.ForeColor = Color.DarkOrange;
-                        PN_TextBox.Text = fallbackModel;
+                        PN_TextBox.ForeColor = Color.Black;
                     }));
                     GVL.QR_TechnicolorModel = "";
-                }
-                else if (FuzzyMatch(GVL.OCR_PN, GVL.QR_TechnicolorModel))
-                {
-                    isPassModel = true;
-                    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid (Fuzzymatch fallback)", Color.Orange);
-                    this.Invoke(new Action(() =>
-                    {
-                        PN_TextBox.ForeColor = Color.DarkOrange;
-                        PN_TextBox.Text = GVL.QR_TechnicolorModel;
-                    }));
-                    GVL.QR_TechnicolorModel = "";
+
+                    //if (GVL.QR_ComcastModel.Contains(GVL.Model))
+                    //{
+                    //    isPassModel = true;
+                    //    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid", Color.Green);
+                    //    this.Invoke(new Action(() =>
+                    //    {
+                    //        PN_TextBox.ForeColor = Color.Black;
+                    //    }));
+                    //    GVL.QR_TechnicolorModel = "";
+                    //}
+                    //else
+                    //{
+                    //    isPassModel = false;
+                    //    AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model not matched, OCR READ = [{GVL.OCR_PN}], check again and retry!", Color.Red);
+                    //    this.Invoke(new Action(() =>
+                    //    {
+                    //        PN_TextBox.ForeColor = Color.Red;
+                    //    }));
+                    //    GVL.QR_TechnicolorModel = "";
+                    //}
                 }
                 else
                 {
-                    isPassModel = false;
-                    AppendLogText($"[{GVL.QR_TechnicolorModel}] -  Model not matched, OCR READ = [{GVL.OCR_PN}], check again and retry!", Color.Red);
-                    this.Invoke(new Action(() =>
+                    string fallbackModel = ProcessOCR_Tesseract(new Bitmap(ModelPicture.Image), GVL.QR_TechnicolorModel, @"[A-Z0-9]{10}");
+                    if (fallbackModel == GVL.QR_TechnicolorModel)
                     {
-                        PN_TextBox.ForeColor = Color.Red;
-                    }));
-                }
-            }
+                        isPassModel = true;
+                        AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid (Tesseract fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.DarkOrange;
+                            PN_TextBox.Text = fallbackModel;
+                        }));
+                        GVL.QR_TechnicolorModel = "";
+                    }
+                    else if (FuzzyMatch(GVL.OCR_PN, GVL.QR_TechnicolorModel))
+                    {
+                        isPassModel = true;
+                        AppendLogText($"[{GVL.QR_TechnicolorModel}] - Model is valid (Fuzzymatch fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.DarkOrange;
+                            PN_TextBox.Text = GVL.QR_TechnicolorModel;
+                        }));
+                        GVL.QR_TechnicolorModel = "";
+                    }
+                    else
+                    {
+                        isPassModel = false;
 
-            //FCC ID
-            if (GVL.OCR_FCCID.Equals("G954981X"))
-            {
-                isPassFCC = true;
-                AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID is valid", Color.Green);
-                this.Invoke(new Action(() =>
-                {
-                    FCCID_TextBox.ForeColor = Color.Black;
-                }));
-            }
-            else
-            {
-                string fallbackFCC = ProcessOCR_Tesseract(new Bitmap(FCCIDPicture.Image), "G954981X", @"[A-Z0-9]{8}");
-                if (fallbackFCC == "G954981X")
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Text_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.QR_TechnicolorModel}] -  Model not matched, OCR READ = [{GVL.OCR_PN}], check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.Red;
+                        }));
+                    }
+                }
+
+                //FCC ID
+                if (GVL.OCR_FCCID.Equals("G954981X"))
                 {
                     isPassFCC = true;
-                    AppendLogText($"[G954981X] - FCC ID is valid (Tesseract fallback)", Color.Orange);
+                    AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID is valid", Color.Green);
                     this.Invoke(new Action(() =>
                     {
-                        FCCID_TextBox.ForeColor = Color.DarkOrange;
-                        FCCID_TextBox.Text = fallbackFCC;
-                    }));
-                }
-                else if (FuzzyMatch(GVL.OCR_FCCID, "G954981X"))
-                {
-                    isPassFCC = true;
-                    AppendLogText($"[G954981X] - FCC ID is valid (Fuzzy Matching fallback)", Color.Orange);
-                    this.Invoke(new Action(() =>
-                    {
-                        FCCID_TextBox.ForeColor = Color.DarkOrange;
-                        FCCID_TextBox.Text = "G954981X";
+                        FCCID_TextBox.ForeColor = Color.Black;
                     }));
                 }
                 else
                 {
-                    isPassFCC = false;
-                    AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID not matched, check again and retry!", Color.Red);
-                    this.Invoke(new Action(() =>
+                    string fallbackFCC = ProcessOCR_Tesseract(new Bitmap(FCCIDPicture.Image), "G954981X", @"[A-Z0-9]{8}");
+                    if (fallbackFCC == "G954981X")
                     {
-                        FCCID_TextBox.ForeColor = Color.Red;
-                    }));
-                }
-            }
-            
+                        isPassFCC = true;
+                        AppendLogText($"[G954981X] - FCC ID is valid (Tesseract fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.DarkOrange;
+                            FCCID_TextBox.Text = fallbackFCC;
+                        }));
+                    }
+                    else if (FuzzyMatch(GVL.OCR_FCCID, "G954981X"))
+                    {
+                        isPassFCC = true;
+                        AppendLogText($"[G954981X] - FCC ID is valid (Fuzzy Matching fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.DarkOrange;
+                            FCCID_TextBox.Text = "G954981X";
+                        }));
+                    }
+                    else
+                    {
+                        isPassFCC = false;
 
-            // CMMac
-            if (GVL.OCR_CM_MAC.Equals(GVL.QR_CM_MAC))
-            {
-                isPassCM = true;
-                AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched", Color.Green);
-                this.Invoke(new Action(() =>
-                {
-                    OCRCMMAC_TextBox.ForeColor = Color.Black;
-                }));
-                GVL.QR_CM_MAC = "";
-            }
-            else
-            {
-                string fallbackCM = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_CM_MAC, @"[A-Z0-9]{12}");
-                if (fallbackCM == GVL.QR_CM_MAC)
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Text_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID not matched, check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.Red;
+                        }));
+                    }
+                }
+
+
+                // CMMac
+                if (GVL.OCR_CM_MAC.Equals(GVL.QR_CM_MAC))
                 {
                     isPassCM = true;
-                    AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Tesseract fallback)", Color.Orange);
-                    OCRCMMAC_TextBox.Text = fallbackCM;
-                    OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_CM_MAC = "";
-                }
-                else if (FuzzyMatch(GVL.OCR_CM_MAC, GVL.QR_CM_MAC))
-                {
-                    isPassCM = true;
-                    AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Fuzzy Matching fallback)", Color.Orange);
-                    OCRCMMAC_TextBox.Text = GVL.QR_CM_MAC;
-                    OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_CM_MAC = "";
-                }
-                else
-                {
-                    isPassCM = false;
-                    AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC mismatch. Paddle: {GVL.OCR_CM_MAC}, Tesseract: {fallbackCM}", Color.Red);
-                    OCRCMMAC_TextBox.ForeColor = Color.Red;
-                }
-            }
-
-            // WANMac
-            if (GVL.OCR_WAN_MAC.Equals(GVL.QR_WAN_MAC))
-            {
-                isPassWAN = true;
-                AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched", Color.Green);
-                this.Invoke(new Action(() =>
-                {
-                    OCRWANMAC_TextBox.ForeColor = Color.Black;
-                }));
-                GVL.QR_WAN_MAC = "";
-            }
-            else
-            {
-                string fallbackWAN = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_WAN_MAC, @"[A-Z0-9]{12}");
-                if (fallbackWAN == GVL.QR_WAN_MAC)
-                {
-                    isPassWAN = true;
-                    AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched (Tesseract fallback)", Color.Orange);
-                    OCRWANMAC_TextBox.Text = fallbackWAN;
-                    OCRWANMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_WAN_MAC = "";
-                }
-                else if (FuzzyMatch(GVL.OCR_WAN_MAC, GVL.QR_WAN_MAC))
-                {
-                    isPassWAN = true;
-                    AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched (Fuzzy Matching fallback)", Color.Orange);
-                    OCRWANMAC_TextBox.Text = GVL.QR_WAN_MAC;
-                    OCRWANMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_WAN_MAC = "";
-                }
-                else
-                {
-                    isPassWAN = false;
-                    AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC mismatch. Paddle: {GVL.OCR_WAN_MAC}, Tesseract: {fallbackWAN}", Color.Red);
-                    OCRWANMAC_TextBox.ForeColor = Color.Red;
-                }
-            }
-
-            // MTAMac
-            if (GVL.OCR_MTA_MAC.Equals(GVL.QR_MTA_MAC))
-            {
-                isPassMTA = true;
-                AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched", Color.Green);
-                this.Invoke(new Action(() =>
-                {
-                    OCRMTAMAC_TextBox.ForeColor = Color.Black;
-                }));
-                GVL.QR_MTA_MAC = "";
-            }
-            else
-            {
-                string fallbackMTA = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_MTA_MAC, @"[A-Z0-9]{12}");
-                if (fallbackMTA == GVL.QR_MTA_MAC)
-                {
-                    isPassMTA = true;
-                    AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Tesseract fallback)", Color.Orange);
-                    OCRMTAMAC_TextBox.Text = fallbackMTA;
-                    OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_MTA_MAC = "";
-                }
-                else if (FuzzyMatch(GVL.OCR_MTA_MAC, GVL.QR_MTA_MAC))
-                {
-                    isPassMTA = true;
-                    AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Fuzzy Matching fallback)", Color.Orange);
-                    OCRMTAMAC_TextBox.Text = GVL.QR_MTA_MAC;
-                    OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
-                    GVL.QR_MTA_MAC = "";
-                }
-                else
-                {
-                    isPassMTA = false;
-                    AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC mismatch. Paddle: {GVL.OCR_MTA_MAC}, Tesseract: {fallbackMTA}", Color.Red);
-                    OCRMTAMAC_TextBox.ForeColor = Color.Red;
-                }
-            }
-
-            // NetworkName
-            if (GVL.SSID.Contains(GVL.OCR_LastFourNetworkName))
-            {
-                Console.WriteLine(GVL.OCR_NetworkName);
-                if (GVL.OCR_NetworkName.Equals(GVL.SSID) || FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
-                {
-                    isPassNetworkName = true;
-                    AppendLogText($"[{GVL.OCR_NetworkName}] - SSID is valid", Color.Green);
+                    AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched", Color.Green);
                     this.Invoke(new Action(() =>
                     {
-                        NETWORKNAME_TextBox.ForeColor = Color.Black;
+                        OCRCMMAC_TextBox.ForeColor = Color.Black;
                     }));
+                    GVL.QR_CM_MAC = "";
+                }
+                else
+                {
+                    string fallbackCM = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_CM_MAC, @"[A-Z0-9]{12}");
+                    if (fallbackCM == GVL.QR_CM_MAC)
+                    {
+                        isPassCM = true;
+                        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Tesseract fallback)", Color.Orange);
+                        OCRCMMAC_TextBox.Text = fallbackCM;
+                        OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_CM_MAC = "";
+                    }
+                    else if (FuzzyMatch(GVL.OCR_CM_MAC, GVL.QR_CM_MAC))
+                    {
+                        isPassCM = true;
+                        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Fuzzy Matching fallback)", Color.Orange);
+                        OCRCMMAC_TextBox.Text = GVL.QR_CM_MAC;
+                        OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_CM_MAC = "";
+                    }
+                    else
+                    {
+                        isPassCM = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "CMMAC_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC mismatch. Paddle: {GVL.OCR_CM_MAC}, Tesseract: {fallbackCM}", Color.Red);
+                        OCRCMMAC_TextBox.ForeColor = Color.Red;
+                    }
+                }
+
+                // WANMac
+                if (GVL.OCR_WAN_MAC.Equals(GVL.QR_WAN_MAC))
+                {
+                    isPassWAN = true;
+                    AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        OCRWANMAC_TextBox.ForeColor = Color.Black;
+                    }));
+                    GVL.QR_WAN_MAC = "";
+                }
+                else
+                {
+                    string fallbackWAN = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_WAN_MAC, @"[A-Z0-9]{12}");
+                    if (fallbackWAN == GVL.QR_WAN_MAC)
+                    {
+                        isPassWAN = true;
+                        AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched (Tesseract fallback)", Color.Orange);
+                        OCRWANMAC_TextBox.Text = fallbackWAN;
+                        OCRWANMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_WAN_MAC = "";
+                    }
+                    else if (FuzzyMatch(GVL.OCR_WAN_MAC, GVL.QR_WAN_MAC))
+                    {
+                        isPassWAN = true;
+                        AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC matched (Fuzzy Matching fallback)", Color.Orange);
+                        OCRWANMAC_TextBox.Text = GVL.QR_WAN_MAC;
+                        OCRWANMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_WAN_MAC = "";
+                    }
+                    else
+                    {
+                        isPassWAN = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "WANMAC_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.QR_WAN_MAC}] - WAN MAC mismatch. Paddle: {GVL.OCR_WAN_MAC}, Tesseract: {fallbackWAN}", Color.Red);
+                        OCRWANMAC_TextBox.ForeColor = Color.Red;
+                    }
+                }
+
+                // MTAMac
+                if (GVL.OCR_MTA_MAC.Equals(GVL.QR_MTA_MAC))
+                {
+                    isPassMTA = true;
+                    AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        OCRMTAMAC_TextBox.ForeColor = Color.Black;
+                    }));
+                    GVL.QR_MTA_MAC = "";
+                }
+                else
+                {
+                    string fallbackMTA = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_MTA_MAC, @"[A-Z0-9]{12}");
+                    if (fallbackMTA == GVL.QR_MTA_MAC)
+                    {
+                        isPassMTA = true;
+                        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Tesseract fallback)", Color.Orange);
+                        OCRMTAMAC_TextBox.Text = fallbackMTA;
+                        OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_MTA_MAC = "";
+                    }
+                    else if (FuzzyMatch(GVL.OCR_MTA_MAC, GVL.QR_MTA_MAC))
+                    {
+                        isPassMTA = true;
+                        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Fuzzy Matching fallback)", Color.Orange);
+                        OCRMTAMAC_TextBox.Text = GVL.QR_MTA_MAC;
+                        OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
+                        GVL.QR_MTA_MAC = "";
+                    }
+                    else
+                    {
+                        isPassMTA = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "MTAMAC_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC mismatch. Paddle: {GVL.OCR_MTA_MAC}, Tesseract: {fallbackMTA}", Color.Red);
+                        OCRMTAMAC_TextBox.ForeColor = Color.Red;
+                    }
+                }
+
+                // NetworkName
+                if (GVL.SSID.Contains(GVL.OCR_LastFourNetworkName))
+                {
+                    Console.WriteLine(GVL.OCR_NetworkName);
+                    if (GVL.OCR_NetworkName.Equals(GVL.SSID) || FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID is valid", Color.Green);
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.ForeColor = Color.Black;
+                        }));
+                    }
+                    else
+                    {
+                        string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
+                        if (fallbackSSID == GVL.SSID)
+                        {
+                            isPassNetworkName = true;
+                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
+                            NETWORKNAME_TextBox.Text = fallbackSSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }
+                        else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                        {
+                            isPassNetworkName = true;
+                            AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }
+                        else
+                        {
+                            isPassNetworkName = false;
+
+                            if (string.IsNullOrEmpty(failReason))
+                            {
+                                failReason = "SSID_Not_Match";
+                            }
+
+                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.ForeColor = Color.Red;
+                            }));
+                        }
+                    }
                 }
                 else
                 {
@@ -633,7 +746,7 @@ namespace XB8_Program
                         NETWORKNAME_TextBox.Text = fallbackSSID;
                         NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
                     }
-                    else if(FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
                     {
                         isPassNetworkName = true;
                         AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
@@ -643,6 +756,12 @@ namespace XB8_Program
                     else
                     {
                         isPassNetworkName = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "SSID_Not_Match";
+                        }
+
                         AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
                         this.Invoke(new Action(() =>
                         {
@@ -650,142 +769,731 @@ namespace XB8_Program
                         }));
                     }
                 }
-            }
-            else
-            {
-                string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
-                if (fallbackSSID == GVL.SSID)
+
+                //Password
+                if (GVL.OCR_Password.Equals(GVL.Password))
                 {
-                    isPassNetworkName = true;
-                    AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
-                    NETWORKNAME_TextBox.Text = fallbackSSID;
-                    NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
-                }
-                else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
-                {
-                    isPassNetworkName = true;
-                    AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
-                    NETWORKNAME_TextBox.Text = GVL.SSID;
-                    NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
-                }
-                else
-                {
-                    isPassNetworkName = false;
-                    AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
+                    isPassPassword = true;
+                    AppendLogText($"[{GVL.OCR_Password}] - Password is valid", Color.Green);
                     this.Invoke(new Action(() =>
                     {
-                        NETWORKNAME_TextBox.ForeColor = Color.Red;
+                        PASSWORD_TextBox.ForeColor = Color.Black;
                     }));
                 }
-            }
+                else
+                {
+                    string fallbackPassword = ProcessOCR_Tesseract(new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
+                    if (fallbackPassword == GVL.Password)
+                    {
+                        isPassPassword = true;
+                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract fallback)", Color.Orange);
+                        PASSWORD_TextBox.Text = fallbackPassword;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                    {
+                        isPassPassword = true;
+                        AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy Match fallback)", Color.Orange);
+                        PASSWORD_TextBox.Text = GVL.Password;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else
+                    {
+                        isPassPassword = false;
 
-            //Password
-            if (GVL.OCR_Password.Equals(GVL.Password)) 
-            {
-                isPassPassword = true;
-                AppendLogText($"[{GVL.OCR_Password}] - Password is valid", Color.Green);
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Password_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract fallback = [{fallbackPassword}], SFIS = [{GVL.Password}]", Color.Red);
+                        PASSWORD_TextBox.ForeColor = Color.Red;
+                    }
+                }
+
+                //Left Label
+                if (LeftLabelScore >= 99)
+                {
+                    isPassLeftLabel = true;
+                    AppendLogText($"Left Label {LeftLabelScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassLeftLabel = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Left Label {LeftLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+                //Right Label
+                if (RightLabelScore >= 99)
+                {
+                    isPassRightLabel = true;
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassRightLabel = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+                // LOGOAREA CHECK
+                if (GVL.IsLogoDetected && GVL.WidthLOGOAREA > 0 && GVL.HeightLOGOAREA > 0)
+                {
+                    isPassLogo = true;
+                    AppendLogText("Logo detected", Color.Green);
+                }
+                else
+                {
+                    isPassLogo = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Logo_Missing";
+                    }
+
+                    AppendLogText("Logo NOT detected!", Color.Red);
+                }
                 this.Invoke(new Action(() =>
                 {
-                    PASSWORD_TextBox.ForeColor = Color.Black;
+                    if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)
+                    {
+                        isPassBarcode = false;
+                        isPassQR = false;
+                        CC.WriteCoilMemory(PASSCoil, true);
+                        LabelResult.Text = "PASS";
+                        LabelResult.ForeColor = Color.Green;
+                        AppendLogText("PASS", Color.Green);
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(PASSCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, true);
+                        UpdateCounter(true);
+                    }
+                    else
+                    {
+                        CC.WriteCoilMemory(NGCoil, true);
+                        LabelResult.Text = "NG";
+                        LabelResult.ForeColor = Color.Red;
+                        AppendLogText("NG", Color.Red);
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(NGCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, false);
+                        UpdateCounter(false);
+                        _ = MQTT.SendFail(failReason);
+                    }
                 }));
             }
-            else
+            else if (SelectModel == 2)
             {
-                string fallbackPassword = ProcessOCR_Tesseract(new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
-                if (fallbackPassword == GVL.Password)
+                //SN
+                if (GVL.OCR_SN != GVL.Barcode_SN)
                 {
-                    isPassPassword = true;
-                    AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract fallback)", Color.Orange);
-                    PASSWORD_TextBox.Text = fallbackPassword;
-                    PASSWORD_TextBox.ForeColor = Color.DarkOrange;
-                }
-                else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
-                {
-                    isPassPassword = true;
-                    AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy Match fallback)", Color.Orange);
-                    PASSWORD_TextBox.Text = GVL.Password;
-                    PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                    string fallbackSN = ProcessOCR_Tesseract(new Bitmap(SNPicture.Image), GVL.Barcode_SN, @"\d{18}");
+                    if (fallbackSN == GVL.Barcode_SN)
+                    {
+                        var SNChecking = SFIS.SFIS_CheckSN(GVL.Barcode_SN);
+                        if (SNChecking.Contains("NOT FOUND") || SNChecking.Contains("not Defined") || SNChecking.StartsWith("0") || string.IsNullOrEmpty(SNChecking))
+                        {
+                            isPassSN = false;
+
+                            string SFISResponse = SFIS.StringSNReader;
+                            string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                            GVL.StartResult = DATA[0];
+                            GVL.TypeResult = DATA[1];
+                            GVL.Model = "NOT FOUND";
+                            GVL.SSID = "NOT FOUND";
+                            GVL.Password = "NOT FOUND";
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is not valid, check again and retry!", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                SN_TextBox.ForeColor = Color.Red;
+                            }));
+                            SNChecking = "";
+                            if (!isPassSN && string.IsNullOrEmpty(failReason))
+                            {
+                                failReason = "SNFail";
+                            }
+                        }
+                        else if (SNChecking.Contains("GET OK") || SNChecking.StartsWith("1"))
+                        {
+                            string SFISResponse = SFIS.StringSNReader;
+                            string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+
+                            GVL.StartResult = DATA[0];
+                            GVL.TypeResult = DATA[1];
+                            GVL.Model = DATA[2];
+                            GVL.SSID = DATA[3];
+                            GVL.Password = DATA[4];
+                            Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
+
+                            isPassSN = true;
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid", Color.Green);
+                            this.Invoke(new Action(() =>
+                            {
+                                SN_TextBox.ForeColor = Color.Black;
+                            }));
+                            GVL.Barcode_SN = "";
+                        }
+                    }
+                    else if (FuzzyMatch(GVL.OCR_PN, GVL.Barcode_SN))
+                    {
+                        var SNChecking = SFIS.SFIS_CheckSN(GVL.Barcode_SN);
+                        if (SNChecking.Contains("NOT FOUND") || SNChecking.Contains("not Defined") || SNChecking.StartsWith("0") || string.IsNullOrEmpty(SNChecking))
+                        {
+                            isPassSN = false;
+
+                            string SFISResponse = SFIS.StringSNReader;
+                            string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                            GVL.StartResult = DATA[0];
+                            GVL.TypeResult = DATA[1];
+                            GVL.Model = "NOT FOUND";
+                            GVL.SSID = "NOT FOUND";
+                            GVL.Password = "NOT FOUND";
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is not valid, check again and retry!", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                SN_TextBox.ForeColor = Color.Red;
+                            }));
+                            SNChecking = "";
+                            if (!isPassSN && string.IsNullOrEmpty(failReason))
+                            {
+                                failReason = "SNFail";
+                            }
+                        }
+                        else if (SNChecking.Contains("GET OK") || SNChecking.StartsWith("1"))
+                        {
+                            string SFISResponse = SFIS.StringSNReader;
+                            string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+
+                            GVL.StartResult = DATA[0];
+                            GVL.TypeResult = DATA[1];
+                            GVL.Model = DATA[2];
+                            GVL.SSID = DATA[3];
+                            GVL.Password = DATA[4];
+                            Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
+
+                            isPassSN = true;
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid", Color.Green);
+                            this.Invoke(new Action(() =>
+                            {
+                                SN_TextBox.ForeColor = Color.Black;
+                            }));
+                            GVL.Barcode_SN = "";
+                        }
+                    }
                 }
                 else
                 {
-                    isPassPassword = false;
-                    AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract fallback = [{fallbackPassword}], SFIS = [{GVL.Password}]", Color.Red);
-                    PASSWORD_TextBox.ForeColor = Color.Red;
-                }
-            }
-
-            //Left Label
-            if (LeftLabelScore >= 99)
-            {
-                isPassLeftLabel = true;
-                AppendLogText($"Left Label {LeftLabelScore:0.0}% matched", Color.Green);
-            }
-            else
-            {
-                isPassLeftLabel = false;
-                AppendLogText($"Left Label {LeftLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
-            }
-
-            //Right Label
-            if (RightLabelScore >= 99)
-            {
-                isPassRightLabel = true;
-                AppendLogText($"Right Label {RightLabelScore:0.0}% matched", Color.Green);
-            }
-            else
-            {
-                isPassRightLabel = false;
-                AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
-            }
-
-            // LOGOAREA CHECK
-            if (GVL.IsLogoDetected && GVL.WidthLOGOAREA > 0 && GVL.HeightLOGOAREA > 0)
-            {
-                isPassLogo = true;
-                AppendLogText("Logo detected", Color.Green);
-            }
-            else
-            {
-                isPassLogo = false;
-                AppendLogText("Logo NOT detected!", Color.Red);
-            }
-            this.Invoke(new Action(() =>
-            {
-                if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)
-                {
-                    isPassBarcode = false;
-                    isPassQR = false;
-                    CC.WriteCoilMemory(PASSCoil, true);
-                    LabelResult.Text = "PASS";
-                    LabelResult.ForeColor = Color.Green;
-                    AppendLogText("PASS", Color.Green);
-                    Thread.Sleep(200);
-                    CC.WriteCoilMemory(PASSCoil, false);
-                    if (CC.ErrorCode == 1)
+                    var SNChecking = SFIS.SFIS_CheckSN(GVL.Barcode_SN);
+                    if (SNChecking.Contains("NOT FOUND") || SNChecking.Contains("not Defined") || SNChecking.StartsWith("0") || string.IsNullOrEmpty(SNChecking))
                     {
-                        AppendLogText(CC.ErrorString, Color.Red);
-                        CC.ErrorCode = 0;
+                        isPassSN = false;
+
+                        string SFISResponse = SFIS.StringSNReader;
+                        string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                        GVL.StartResult = DATA[0];
+                        GVL.TypeResult = DATA[1];
+                        GVL.Model = "NOT FOUND";
+                        GVL.SSID = "NOT FOUND";
+                        GVL.Password = "NOT FOUND";
+                        AppendLogText($"[{GVL.Barcode_SN}] - SN is not valid, check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            SN_TextBox.ForeColor = Color.Red;
+                        }));
+                        SNChecking = "";
+                        if (!isPassSN && string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "SNFail";
+                        }
                     }
-                    SaveImageByResult(SourcePicture.Image, true);
-                    UpdateCounter(true);
+                    else if (SNChecking.Contains("GET OK") || SNChecking.StartsWith("1"))
+                    {
+                        string SFISResponse = SFIS.StringSNReader;
+                        string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+
+                        GVL.StartResult = DATA[0];
+                        GVL.TypeResult = DATA[1];
+                        GVL.Model = DATA[2];
+                        GVL.SSID = DATA[3];
+                        GVL.Password = DATA[4];
+                        Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
+
+                        isPassSN = true;
+                        AppendLogText($"[{GVL.Barcode_SN}] - SN is valid", Color.Green);
+                        this.Invoke(new Action(() =>
+                        {
+                            SN_TextBox.ForeColor = Color.Black;
+                        }));
+                        GVL.Barcode_SN = "";
+                    }
+                }
+
+
+                //Technicolor model/PN/Comcast model
+
+                if (GVL.OCR_PN.Equals("CGM4981COX"))
+                {
+                    isPassModel = true;
+                    AppendLogText($"[{GVL.OCR_PN}] - Model is valid", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        PN_TextBox.ForeColor = Color.Black;
+                    }));
                 }
                 else
-                { 
-                    CC.WriteCoilMemory(NGCoil, true);
-                    LabelResult.Text = "NG";
-                    LabelResult.ForeColor = Color.Red;
-                    AppendLogText("NG", Color.Red);
-                    Thread.Sleep(200);
-                    CC.WriteCoilMemory(NGCoil, false);
-                    if (CC.ErrorCode == 1)
+                {
+                    string fallbackModel = ProcessOCR_Tesseract(new Bitmap(ModelPicture.Image), "CGM4981COX", @"[A-Z0-9]{10}");
+                    if (fallbackModel == "CGM4981COX")
                     {
-                        AppendLogText(CC.ErrorString, Color.Red);
-                        CC.ErrorCode = 0;
+                        isPassModel = true;
+                        AppendLogText($"[CGM4981COX] - Model is valid (Tesseract fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.DarkOrange;
+                            PN_TextBox.Text = fallbackModel;
+                        }));
                     }
-                    SaveImageByResult(SourcePicture.Image, false);
-                    UpdateCounter(false);
+                    else if (FuzzyMatch(GVL.OCR_PN, "CGM4981COX"))
+                    {
+                        isPassModel = true;
+                        AppendLogText($"[CGM4981COX] - Model is valid (Fuzzymatch fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.DarkOrange;
+                            PN_TextBox.Text = GVL.QR_TechnicolorModel;
+                        }));
+                    }
+                    else
+                    {
+                        isPassModel = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Text_Not_Match";
+                        }
+
+                        AppendLogText($"Model not matched, OCR READ = [{GVL.OCR_PN}], check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            PN_TextBox.ForeColor = Color.Red;
+                        }));
+                    }
                 }
-            }));
+
+                //FCC ID
+                if (GVL.OCR_FCCID.Equals("G954981X"))
+                {
+                    isPassFCC = true;
+                    AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID is valid", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        FCCID_TextBox.ForeColor = Color.Black;
+                    }));
+                }
+                else
+                {
+                    string fallbackFCC = ProcessOCR_Tesseract(new Bitmap(FCCIDPicture.Image), "G954981X", @"[A-Z0-9]{8}");
+                    if (fallbackFCC == "G954981X")
+                    {
+                        isPassFCC = true;
+                        AppendLogText($"[G954981X] - FCC ID is valid (Tesseract fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.DarkOrange;
+                            FCCID_TextBox.Text = fallbackFCC;
+                        }));
+                    }
+                    else if (FuzzyMatch(GVL.OCR_FCCID, "G954981X"))
+                    {
+                        isPassFCC = true;
+                        AppendLogText($"[G954981X] - FCC ID is valid (Fuzzy Matching fallback)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.DarkOrange;
+                            FCCID_TextBox.Text = "G954981X";
+                        }));
+                    }
+                    else
+                    {
+                        isPassFCC = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Text_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.OCR_FCCID}] - FCC ID not matched, check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            FCCID_TextBox.ForeColor = Color.Red;
+                        }));
+                    }
+                }
+
+                //INPUT text
+                if (InputScore >= 99)
+                {
+                    isPassInput = true;
+                    AppendLogText($"Text Input {InputScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassInput = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Text Input {InputScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+                #region mac
+                //// CMMac
+                //if (GVL.OCR_CM_MAC.Equals(GVL.QR_CM_MAC))
+                //{
+                //    isPassCM = true;
+                //    AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched", Color.Green);
+                //    this.Invoke(new Action(() =>
+                //    {
+                //        OCRCMMAC_TextBox.ForeColor = Color.Black;
+                //    }));
+                //}
+                //else
+                //{
+                //    string fallbackCM = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_CM_MAC, @"[A-Z0-9]{12}");
+                //    if (fallbackCM == GVL.QR_CM_MAC)
+                //    {
+                //        isPassCM = true;
+                //        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Tesseract fallback)", Color.Orange);
+                //        OCRCMMAC_TextBox.Text = fallbackCM;
+                //        OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
+                //    }
+                //    else if (FuzzyMatch(GVL.OCR_CM_MAC, GVL.QR_CM_MAC))
+                //    {
+                //        isPassCM = true;
+                //        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC matched (Fuzzy Matching fallback)", Color.Orange);
+                //        OCRCMMAC_TextBox.Text = GVL.QR_CM_MAC;
+                //        OCRCMMAC_TextBox.ForeColor = Color.DarkOrange;
+                //    }
+                //    else
+                //    {
+                //        isPassCM = false;
+
+                //        if (string.IsNullOrEmpty(failReason))
+                //        {
+                //            failReason = "CMMAC_Not_Match";
+                //        }
+
+                //        AppendLogText($"[{GVL.QR_CM_MAC}] - CM MAC mismatch. Paddle: {GVL.OCR_CM_MAC}, Tesseract: {fallbackCM}", Color.Red);
+                //        OCRCMMAC_TextBox.ForeColor = Color.Red;
+                //    }
+                //}
+
+
+                //// MTAMac
+                //if (GVL.OCR_MTA_MAC.Equals(GVL.QR_MTA_MAC))
+                //{
+                //    isPassMTA = true;
+                //    AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched", Color.Green);
+                //    this.Invoke(new Action(() =>
+                //    {
+                //        OCRMTAMAC_TextBox.ForeColor = Color.Black;
+                //    }));
+                //}
+                //else
+                //{
+                //    string fallbackMTA = ProcessOCR_Tesseract(new Bitmap(MACPicture.Image), GVL.QR_MTA_MAC, @"[A-Z0-9]{12}");
+                //    if (fallbackMTA == GVL.QR_MTA_MAC)
+                //    {
+                //        isPassMTA = true;
+                //        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Tesseract fallback)", Color.Orange);
+                //        OCRMTAMAC_TextBox.Text = fallbackMTA;
+                //        OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
+                //    }
+                //    else if (FuzzyMatch(GVL.OCR_MTA_MAC, GVL.QR_MTA_MAC))
+                //    {
+                //        isPassMTA = true;
+                //        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC matched (Fuzzy Matching fallback)", Color.Orange);
+                //        OCRMTAMAC_TextBox.Text = GVL.QR_MTA_MAC;
+                //        OCRMTAMAC_TextBox.ForeColor = Color.DarkOrange;
+                //    }
+                //    else
+                //    {
+                //        isPassMTA = false;
+
+                //        if (string.IsNullOrEmpty(failReason))
+                //        {
+                //            failReason = "MTAMAC_Not_Match";
+                //        }
+
+                //        AppendLogText($"[{GVL.QR_MTA_MAC}] - MTA MAC mismatch. Paddle: {GVL.OCR_MTA_MAC}, Tesseract: {fallbackMTA}", Color.Red);
+                //        OCRMTAMAC_TextBox.ForeColor = Color.Red;
+                //    }
+                //}
+
+                #endregion
+                //MAC temporary
+                isPassCM = true;
+                isPassMTA = true;
+
+                //MADE text
+                if (MadeScore >= 99)
+                {
+                    isPassMade = true;
+                    AppendLogText($"Text Made In {MadeScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassMade = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Text Made In {MadeScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+                //Regulation text
+                if (LeftLabelScore >= 99)
+                {
+                    isPassRegulation = true;
+                    AppendLogText($"Text Regulation {LeftLabelScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassRegulation = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Text Regulation {LeftLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+
+                // NetworkName
+                if (GVL.SSID.Contains(GVL.OCR_LastFourNetworkName))
+                {
+                    Console.WriteLine(GVL.OCR_NetworkName);
+                    if (GVL.OCR_NetworkName.Equals(GVL.SSID) || FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID is valid", Color.Green);
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.ForeColor = Color.Black;
+                        }));
+                    }
+                    else
+                    {
+                        string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"SETUP\-[A-Z0-9]{4}$");
+                        if (fallbackSSID == GVL.SSID)
+                        {
+                            isPassNetworkName = true;
+                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
+                            NETWORKNAME_TextBox.Text = fallbackSSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }
+                        else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                        {
+                            isPassNetworkName = true;
+                            AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }
+                        else
+                        {
+                            isPassNetworkName = false;
+
+                            if (string.IsNullOrEmpty(failReason))
+                            {
+                                failReason = "SSID_Not_Match";
+                            }
+
+                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.ForeColor = Color.Red;
+                            }));
+                        }
+                    }
+                }
+                else
+                {
+                    string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"SETUP\-[A-Z0-9]{4}$");
+                    if (fallbackSSID == GVL.SSID)
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
+                        NETWORKNAME_TextBox.Text = fallbackSSID;
+                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
+                        NETWORKNAME_TextBox.Text = GVL.SSID;
+                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else
+                    {
+                        isPassNetworkName = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "SSID_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.ForeColor = Color.Red;
+                        }));
+                    }
+                }
+
+                //Password
+                if (GVL.OCR_Password.Equals(GVL.Password))
+                {
+                    isPassPassword = true;
+                    AppendLogText($"[{GVL.OCR_Password}] - Password is valid", Color.Green);
+                    this.Invoke(new Action(() =>
+                    {
+                        PASSWORD_TextBox.ForeColor = Color.Black;
+                    }));
+                }
+                else
+                {
+                    string fallbackPassword = ProcessOCR_Tesseract(new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
+                    if (fallbackPassword == GVL.Password)
+                    {
+                        isPassPassword = true;
+                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract fallback)", Color.Orange);
+                        PASSWORD_TextBox.Text = fallbackPassword;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                    {
+                        isPassPassword = true;
+                        AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy Match fallback)", Color.Orange);
+                        PASSWORD_TextBox.Text = GVL.Password;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                    }
+                    else
+                    {
+                        isPassPassword = false;
+
+                        if (string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "Password_Not_Match";
+                        }
+
+                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract fallback = [{fallbackPassword}], SFIS = [{GVL.Password}]", Color.Red);
+                        PASSWORD_TextBox.ForeColor = Color.Red;
+                    }
+                }
+
+                //Right Label
+                if (RightLabelScore >= 99)
+                {
+                    isPassRightLabel = true;
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched", Color.Green);
+                }
+                else
+                {
+                    isPassRightLabel = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Text_Not_Match";
+                    }
+
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                }
+
+                // LOGOAREA CHECK
+                if (GVL.IsLogoDetected && GVL.WidthLOGOAREA > 0 && GVL.HeightLOGOAREA > 0)
+                {
+                    isPassLogo = true;
+                    AppendLogText("Logo detected", Color.Green);
+                }
+                else
+                {
+                    isPassLogo = false;
+
+                    if (string.IsNullOrEmpty(failReason))
+                    {
+                        failReason = "Logo_Missing";
+                    }
+
+                    AppendLogText("Logo NOT detected!", Color.Red);
+                }
+
+                this.Invoke(new Action(() =>
+                {
+                    if (isPassModel && isPassFCC && isPassCM && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassInput && isPassMade && isPassRegulation && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)
+                    {
+                        isPassBarcode = false;
+                        isPassQR = false;
+                        CC.WriteCoilMemory(PASSCoil, true);
+                        LabelResult.Text = "PASS";
+                        LabelResult.ForeColor = Color.Green;
+                        AppendLogText("PASS", Color.Green);
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(PASSCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, true);
+                        UpdateCounter(true);
+                    }
+                    else
+                    {
+                        CC.WriteCoilMemory(NGCoil, true);
+                        LabelResult.Text = "NG";
+                        LabelResult.ForeColor = Color.Red;
+                        AppendLogText("NG", Color.Red);
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(NGCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, false);
+                        UpdateCounter(false);
+                        _ = MQTT.SendFail(failReason);
+                    }
+                }));
+
+            }
+
         }
 
         private bool FuzzyMatch(string s1, string s2)
@@ -1047,11 +1755,50 @@ namespace XB8_Program
 
                     if (result.Regions != null && result.Regions.Count() > 0)
                     {
-                        string allText = string.Join("\n", result.Regions.Select(r => r.Text));
-                        foreach (var region in result.Regions)
+                        var regions = result.Regions
+                            .Select(r => new
+                            {
+                                Region = r,
+                                Rect = r.Rect.BoundingRect()
+                            })
+                            .ToList();
+
+                        int yTolerance = 20;
+
+                        var lines = new List<List<dynamic>>();
+
+                        foreach (var item in regions.OrderBy(r => r.Rect.Y))
                         {
-                            Console.WriteLine($"Text: {region.Text}, Score: {region.Score}");
+                            bool added = false;
+
+                            foreach (var line in lines)
+                            {
+                                if (Math.Abs(line[0].Rect.Y - item.Rect.Y) < yTolerance)
+                                {
+                                    line.Add(item);
+                                    added = true;
+                                    break;
+                                }
+                            }
+
+                            if (!added)
+                            {
+                                lines.Add(new List<dynamic> { item });
+                            }
                         }
+
+                        var orderedRegions = lines
+                            .SelectMany(line => line.OrderBy(r => r.Rect.X))
+                            .Select(r => r.Region)
+                            .ToList();
+
+                        foreach (var r in orderedRegions)
+                        {
+                            var rect = r.Rect.BoundingRect();
+                            Console.WriteLine($"Text: {r.Text}, Score: {r.Score}, X:{rect.X}, Y:{rect.Y}");
+                        }
+
+                        string allText = string.Join("\n", orderedRegions.Select(r => r.Text));
 
                         return allText.Trim();
                     }
@@ -1338,22 +2085,47 @@ namespace XB8_Program
 
         private string GetLabelName(int classId)
         {
-            string[] names =
+            if (_Model == "COM")
             {
-                "PN",
-                "FCCID",
-                "LEFTSIDE",
-                "BARCODE",
-                "MAC",
-                "SSID",
-                "PASSWORD",
-                "RIGHTSIDE",
-                "QR",
-                "LOGOAREA"
-            };
+                string[] names =
+                { 
+                    "PN",
+                    "FCCID",
+                    "LEFTSIDE",
+                    "BARCODE",
+                    "MAC",
+                    "SSID",
+                    "PASSWORD",
+                    "RIGHTSIDE",
+                    "QR",
+                    "LOGOAREA"
+                };
 
-            if (classId >= 0 && classId < names.Length)
-                return names[classId];
+                if (classId >= 0 && classId < names.Length)
+                    return names[classId];
+            }
+            else if (_Model == "COX")
+            {
+                string[] names =
+                {
+                    "PN",
+                    "FCCID",
+                    "INPUT",
+                    "BARCODE",
+                    "SN",
+                    "MAC",
+                    "MADE",
+                    "REGULATION",
+                    "SSID",
+                    "PASSWORD",
+                    "QR",
+                    "RIGHTSIDE",
+                    "LOGOAREA"
+                };
+
+                if (classId >= 0 && classId < names.Length)
+                    return names[classId];
+            }
 
             return "UNKNOWN";
         }
@@ -1364,632 +2136,8 @@ namespace XB8_Program
         {
             ResetBoxCoordinates();
 
-            if (SelectModel != 1)
+            if (SelectModel == 1)
             {
-                MessageBox.Show("Please select the correct model first!");
-                return;
-            }
-
-            try
-            {
-                bool isPNReady = false;
-                bool isFCCIDReady = false;
-                bool isCMMACReady = false;
-                bool isWANMACReady = false;
-                bool isMTAMACReady = false;
-                bool isNETWORKReady = false;
-                bool isPasswordReady = false;
-                bool isLeftLabelReady = false;
-                bool isRightLabelReady = false;
-
-                PN_TextBox.Text = "";
-                FCCID_TextBox.Text = "";
-                OCRCMMAC_TextBox.Text = "";
-                OCRWANMAC_TextBox.Text = "";
-                OCRMTAMAC_TextBox.Text = "";
-                NETWORKNAME_TextBox.Text = "";
-                PASSWORD_TextBox.Text = "";
-
-                GVL.OCR_PN = "";
-                GVL.OCR_FCCID = "";
-                GVL.OCR_CM_MAC = "";
-                GVL.OCR_WAN_MAC = "";
-                GVL.OCR_MTA_MAC = "";
-                GVL.OCR_NetworkName = "";
-                GVL.OCR_Password = "";
-                GVL.OCR_LastFourNetworkName = "";
-
-                Bitmap imageBitmap = new Bitmap(fullPath);
-
-                // ROTATION
-                if (ImageRotation == 90)
-                {
-                    imageBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                }
-                else if (ImageRotation == 180)
-                {
-                    imageBitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
-                }    
-                else if (ImageRotation == 270)
-                {
-                    imageBitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
-                }
-
-                SourcePicture.Image?.Dispose();
-                SourcePicture.Image = new Bitmap(imageBitmap);
-                SourcePicture.Refresh();
-
-                const int INPUT_SIZE = 640;
-                const float CONF_TH = 0.5f;
-                const float NMS_TH = 0.45f;
-
-                var inputTensor = BitmapToTensor(imageBitmap, INPUT_SIZE, INPUT_SIZE);
-
-                var results = _session.Run(new[]
-                {
-    NamedOnnxValue.CreateFromTensor(_inputName, inputTensor)
-});
-
-                var output = results.First().AsTensor<float>();
-                var dims = output.Dimensions.ToArray(); // expected [1,84,8400]
-
-                int rows = dims[1];
-                int cols = dims[2];
-
-                float scaleX = (float)imageBitmap.Width / INPUT_SIZE;
-                float scaleY = (float)imageBitmap.Height / INPUT_SIZE;
-
-                var candidates = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
-
-                for (int i = 0; i < cols; i++)
-                {
-                    float maxScore = 0;
-                    int classId = 0;
-
-                    for (int c = 4; c < rows; c++)
-                    {
-                        if (output[0, c, i] > maxScore)
-                        {
-                            maxScore = output[0, c, i];
-                            classId = c - 4;
-                        }
-                    }
-
-                    if (maxScore > CONF_TH)
-                    {
-                        float cx = output[0, 0, i] * scaleX;
-                        float cy = output[0, 1, i] * scaleY;
-                        float w = output[0, 2, i] * scaleX;
-                        float h = output[0, 3, i] * scaleY;
-
-                        int x = (int)(cx - w / 2);
-                        int y = (int)(cy - h / 2);
-
-                        candidates.Add((new OpenCvSharp.Rect(x, y, (int)w, (int)h), maxScore, classId));
-                    }
-                }
-
-                // NMS
-                var sorted = candidates.OrderByDescending(c => c.Score).ToList();
-                var finalResults = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
-
-                while (sorted.Count > 0)
-                {
-                    var current = sorted[0];
-                    finalResults.Add(current);
-                    sorted.RemoveAt(0);
-
-                    for (int i = sorted.Count - 1; i >= 0; i--)
-                    {
-                        if (CalculateIoU(current.Box, sorted[i].Box) > NMS_TH)
-                            sorted.RemoveAt(i);
-                    }
-                }
-
-
-                foreach (var res in finalResults)
-                {
-                    string label = GetLabelName(res.ClassId);
-
-                    switch (label)
-                    {
-                        case "MAC":
-                            GVL.StartXMAC = res.Box.X;
-                            GVL.StartYMAC = res.Box.Y;
-                            GVL.WidthMAC = res.Box.Width;
-                            GVL.HeightMAC = res.Box.Height;
-                            break;
-
-                        case "SSID":
-                            GVL.StartXSSID = res.Box.X;
-                            GVL.StartYSSID = res.Box.Y;
-                            GVL.WidthSSID = res.Box.Width;
-                            GVL.HeightSSID = res.Box.Height;
-                            break;
-
-                        case "PASSWORD":
-                            GVL.StartXPASSWORD = res.Box.X;
-                            GVL.StartYPASSWORD = res.Box.Y;
-                            GVL.WidthPASSWORD = res.Box.Width;
-                            GVL.HeightPASSWORD = res.Box.Height;
-                            break;
-
-                        case "QR":
-                            GVL.StartXQR = res.Box.X;
-                            GVL.StartYQR = res.Box.Y;
-                            GVL.WidthQR = res.Box.Width;
-                            GVL.HeightQR = res.Box.Height;
-                            break;
-
-                        case "BARCODE":
-                            GVL.StartXBARCODE = res.Box.X;
-                            GVL.StartYBARCODE = res.Box.Y;
-                            GVL.WidthBARCODE = res.Box.Width;
-                            GVL.HeightBARCODE = res.Box.Height;
-                            break;
-
-                        case "PN":
-                            GVL.StartXPN = res.Box.X;
-                            GVL.StartYPN = res.Box.Y;
-                            GVL.WidthPN = res.Box.Width;
-                            GVL.HeightPN = res.Box.Height;
-                            break;
-
-                        case "FCCID":
-                            GVL.StartXFCCID = res.Box.X;
-                            GVL.StartYFCCID = res.Box.Y;
-                            GVL.WidthFCCID = res.Box.Width;
-                            GVL.HeightFCCID = res.Box.Height;
-                            break;
-
-                        case "LEFTSIDE":
-                            GVL.StartXLEFTSIDE = res.Box.X;
-                            GVL.StartYLEFTSIDE = res.Box.Y;
-                            GVL.WidthLEFTSIDE = res.Box.Width;
-                            GVL.HeightLEFTSIDE = res.Box.Height;
-                            break;
-
-                        case "RIGHTSIDE":
-                            GVL.StartXRIGHTSIDE = res.Box.X;
-                            GVL.StartYRIGHTSIDE = res.Box.Y;
-                            GVL.WidthRIGHTSIDE = res.Box.Width;
-                            GVL.HeightRIGHTSIDE = res.Box.Height;
-                            break;
-
-                        case "LOGOAREA":
-                            GVL.StartXLOGOAREA = res.Box.X;
-                            GVL.StartYLOGOAREA = res.Box.Y;
-                            GVL.WidthLOGOAREA = res.Box.Width;
-                            GVL.HeightLOGOAREA = res.Box.Height;
-                            GVL.IsLogoDetected = true;
-                            break;
-                    }
-                }
-
-
-                Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
-                {
-                    { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
-                    { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
-                    { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
-                    { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
-                    { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
-                    { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
-                    { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
-                    { "LEFTSIDE", new Rectangle(GVL.StartXLEFTSIDE, GVL.StartYLEFTSIDE, GVL.WidthLEFTSIDE, GVL.HeightLEFTSIDE) },
-                    { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
-                };
-
-                richTextBox_Barcode.Clear();
-
-                foreach (var region in regions)
-                {
-                    if (region.Value.Width <= 0 || region.Value.Height <= 0)
-                        continue;
-
-                    Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
-
-                    if (region.Key == "QR")
-                    {
-                        QRPicture.Image = cropped;
-                        ProcessBarcodeZbar(cropped);
-                        richTextBox_Barcode.AppendText($"{QRResult}\n");
-                    }
-                    else if (region.Key == "BARCODE")
-                    {
-                        BarcodePicture.Image = cropped;
-                        ProcessBarcodeZbar(cropped);
-                        richTextBox_Barcode.AppendText($"{BarcodeResult}\n");
-                    }
-                    else if (region.Key == "SSID")
-                    {
-                        SSIDPicture.Image = cropped;
-                        string result = ProcessOCR_Paddle(cropped);
-                        string value = ExtractValueFromOcrResult(result, "SSID");
-
-                        if (!string.IsNullOrEmpty(value))
-                        {
-                            NETWORKNAME_TextBox.Text = value;
-                            GVL.OCR_NetworkName = value;
-
-                            string[] parts = value.Split('-');
-                            if (parts.Length > 1)
-                            {
-                                string lastPart = parts.Last().Trim();
-                                if (lastPart.Length >= 4)
-                                    GVL.OCR_LastFourNetworkName = lastPart.Substring(lastPart.Length - 4);
-                                else
-                                    GVL.OCR_LastFourNetworkName = lastPart;
-                            }
-                        }
-                        isNETWORKReady = true;
-                    }
-                    else if (region.Key == "PASSWORD")
-                    {
-                        PasswordPicture.Image = cropped;
-                        string result = ProcessOCR_Paddle(cropped);
-                        string value = ExtractValueFromOcrResult(result, "WORD");
-
-                        if (!string.IsNullOrEmpty(value))
-                        {
-                            PASSWORD_TextBox.Text = value;
-                            GVL.OCR_Password = value;
-                        }
-                        isPasswordReady = true;
-                    }
-                    else if (region.Key == "PN")
-                    {
-                        Mat matCropped = BitmapConverter.ToMat(cropped);
-                        Mat enhanced = new Mat();
-                        matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
-
-                        Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
-                        ModelPicture.Image = enhancedBitmap;
-                        string result = ProcessOCR_Paddle(enhancedBitmap);
-                        string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        foreach (var line in lines)
-                        {
-                            string cleanLine = line.Trim()
-                                .Replace(" ", "")
-                                .Replace(".", "")
-                                .Replace("49B1", "4981")
-                                .Replace("498I", "4981")
-                                .Replace("49BI", "4981")
-                                .Replace("4881", "4981")
-                                .Replace("4B81", "4981")
-                                .Replace("4BB1", "4981")
-                                .Replace("48BI", "4981")
-                                .Replace("4BBI", "4981")
-                                .Replace("C0M", "COM")
-                                .ToUpperInvariant();
-
-                            var match = Regex.Match(cleanLine, @"PN[:-]?([A-Z0-9]+)");
-                            if (match.Success && match.Groups.Count > 1)
-                            {
-                                string value = match.Groups[1].Value;
-                                GVL.OCR_PN = value;
-                                PN_TextBox.Text = value;
-                                break;
-                            }
-                        }
-                        isPNReady = true;
-                    }
-                    else if (region.Key == "FCCID")
-                    {
-                        Mat matCropped = BitmapConverter.ToMat(cropped);
-                        Mat enhanced = new Mat();
-                        matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
-
-                        Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
-                        FCCIDPicture.Image = enhancedBitmap;
-                        string result = ProcessOCR_Paddle(enhancedBitmap);
-                        string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        foreach (var line in lines)
-                        {
-                            string cleanLine = line.Trim()
-                                .Replace(".", "")
-                                .Replace("49B1", "4981")
-                                .Replace("498I", "4981")
-                                .Replace("49BI", "4981")
-                                .Replace("4881", "4981")
-                                .Replace("4B81", "4981")
-                                .Replace("4BB1", "4981")
-                                .Replace("48BI", "4981")
-                                .Replace("4BBI", "4981")
-                                .Replace(" ", "")
-                                .ToUpperInvariant();
-                            var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
-                            if (match.Success && match.Groups.Count > 1)
-                            {
-                                string value = match.Groups[1].Value;
-                                GVL.OCR_FCCID = value;
-                                FCCID_TextBox.Text = value;
-                                break;
-                            }
-                        }
-                        isFCCIDReady = true;
-                    }
-                    else if (region.Key == "MAC")
-                    {
-                        MACPicture.Image = cropped;
-                        string result = ProcessOCR_Paddle(cropped);
-
-                        var validLines = result
-                            .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(l => l.Trim().ToUpperInvariant())
-                            .Where(l => !string.IsNullOrWhiteSpace(l) && l != ",")
-                            .ToList();
-
-                        var matches = validLines
-                            .SelectMany(l => Regex.Matches(l, @"[A-Z0-9]{12}").Cast<Match>())
-                            .Select(m => m.Value)
-                            .ToList();
-
-                        if (matches.Count >= 3)
-                        {
-                            GVL.OCR_CM_MAC = matches[0];
-                            GVL.OCR_WAN_MAC = matches[1];
-                            GVL.OCR_MTA_MAC = matches[2];
-
-                            OCRCMMAC_TextBox.Text = matches[0];
-                            OCRWANMAC_TextBox.Text = matches[1];
-                            OCRMTAMAC_TextBox.Text = matches[2];
-                        }
-                        else
-                        {
-                            if (matches.Count > 0) { GVL.OCR_CM_MAC = matches[0]; OCRCMMAC_TextBox.Text = matches[0]; } else { OCRCMMAC_TextBox.Text = "Not Found"; }
-                            if (matches.Count > 1) { GVL.OCR_WAN_MAC = matches[1]; OCRWANMAC_TextBox.Text = matches[1]; } else { OCRWANMAC_TextBox.Text = "Not Found"; }
-                            if (matches.Count > 2) { GVL.OCR_MTA_MAC = matches[2]; OCRMTAMAC_TextBox.Text = matches[2]; } else { OCRMTAMAC_TextBox.Text = "Not Found"; }
-                        }
-
-                        isCMMACReady = true;
-                        isWANMACReady = true;
-                        isMTAMACReady = true;
-                    }
-                    else if (region.Key == "LEFTSIDE")
-                    {
-                        Mat matCropped = BitmapConverter.ToMat(cropped);
-                        Mat enhanced = new Mat();
-                        matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
-
-                        Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
-
-                        LeftPicture.Image = enhancedBitmap;
-                        string result = ProcessOCR_Paddle(enhancedBitmap);
-
-
-                        if (!string.IsNullOrWhiteSpace(result))
-                        {
-                            string referenceText = "INPUT120V46AFCCREGULATIONSRESTRICTTOINDOORUSEONLY";
-
-                            if (result.StartsWith("nput") || result.StartsWith("1nput") || result.StartsWith("lnput"))
-                            {
-                                result = result
-                                    .Replace("nput", "Input")
-                                    .Replace("1nput", "Input")
-                                    .Replace("lnput", "Input");
-                            }
-
-                            string cleanedResult = result
-                                .Replace("\n", " ")
-                                .Replace("\r", " ")
-                                .Replace(":", " ")
-                                .Replace(".", " ")
-                                .Replace("-", " ")
-                                .Replace("OV", "0V")
-                                .Replace("rogulatlons", "regulations")
-                                .Replace("roguiatlons", "regulations")
-                                .Replace("roguiations", "regulations")
-                                .Replace("regulatlons", "regulations")
-                                .Replace("reguiatlons", "regulations")
-                                .Replace("reguiations", "regulations")
-                                .Replace("restrlct", "restrict")
-                                .Replace("resfrlct", "restrict")
-                                .Replace("resfrict", "restrict")
-                                .Replace("inaoor", "indoor")
-                                .Replace("Inaoor", "indoor")
-                                .Replace("lnaoor", "indoor")
-                                .Replace("lndoor", "indoor")
-                                .Replace("1ndoor", "indoor")
-                                .Replace("1naoor", "indoor")
-                                .Replace("onty", "only")
-                                .Replace("onfy", "only")
-                                .Replace("oniy", "only")
-                                .Replace("onjy", "only")
-                                .Replace("onIy", "only")
-                                .Replace("  ", " ")
-                                .Trim()
-                                .ToUpperInvariant()
-                                .Replace(" ", "");
-
-                            string cleanedReference = referenceText
-                                .Replace(" ", "")
-                                .ToUpperInvariant();
-
-                            double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
-                            LeftLabelScore = matchScore;
-
-                            Console.WriteLine($"[Left Label OCR]: {result}");
-                            Console.WriteLine($"[Cleaned]: {cleanedResult}");
-                            Console.WriteLine($"[LeftLabel Match Score] {matchScore:0.0}%");
-
-                        }
-                        isLeftLabelReady = true;
-                    }
-                    else if (region.Key == "RIGHTSIDE")
-                    {
-                        RightPicture.Image = cropped;
-                        string result = ProcessOCR_Paddle(cropped);
-
-                        if (!string.IsNullOrWhiteSpace(result))
-                        {
-                            string referenceText = "PROPERTYOFCOMCASTNOTFORRESALEREMOVINGTHISSTICKERORTAMPERINGWITHTHISEQUIPMENTISAVIOLATIONOFFEDERALANDSTATELAW";
-
-                            string cleanedResult = result
-                                .Replace("\n", " ")
-                                .Replace("\r", " ")
-                                .Replace("  ", " ")
-                                .Replace(".", " ")
-                                .Replace("OE", "OF")
-                                .Replace("0", "O")
-                                .Replace("4", "A")
-                                .Replace("l", "I")
-                                
-                                .Trim()
-                                .ToUpperInvariant()
-                                .Replace(" ", "");
-
-                            string cleanedReference = referenceText
-                                .Replace(" ", "")
-                                .ToUpperInvariant();
-
-                            double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
-                            RightLabelScore = matchScore;
-
-                            Console.WriteLine($"[Right Label OCR]: {result}");
-                            Console.WriteLine($"[Cleaned]: {cleanedResult}");
-                            Console.WriteLine($"[RightLabel Match Score] {matchScore:0.0}%");
-
-                        }
-                        isRightLabelReady = true;
-                    }
-                }
-
-                if (isPNReady && isFCCIDReady && isCMMACReady && isWANMACReady &&
-                    isMTAMACReady && isNETWORKReady && isPasswordReady &&
-                    isLeftLabelReady && isRightLabelReady)
-                {
-                    isOCRReady = true;
-                }
-                else
-                {
-                    CC.WriteCoilMemory(NGCoil, true);
-                    string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
-                    AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                    AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
-                    this.Invoke(new Action(() =>
-                    {
-                        LabelResult.Text = "NG";
-                        LabelResult.ForeColor = Color.Red;
-                    }));
-                    Thread.Sleep(200);
-                    CC.WriteCoilMemory(NGCoil, false);
-                    if (CC.ErrorCode == 1)
-                    {
-                        AppendLogText(CC.ErrorString, Color.Red);
-                        CC.ErrorCode = 0;
-                    }
-                    SaveImageByResult(SourcePicture.Image, false);
-                    UpdateCounter(false);
-                }
-
-                CheckReady();
-            }
-            catch (Exception ex)
-            {
-                CC.WriteCoilMemory(NGCoil, true);
-                string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
-                AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                AppendLogText("Error ocured" + ex.Message, Color.Red);
-                this.Invoke(new Action(() =>
-                {
-                    LabelResult.Text = "NG";
-                    LabelResult.ForeColor = Color.Red;
-                }));
-                Thread.Sleep(200);
-                CC.WriteCoilMemory(NGCoil, false);
-                if (CC.ErrorCode == 1)
-                {
-                    AppendLogText(CC.ErrorString, Color.Red);
-                    CC.ErrorCode = 0;
-                }
-                SaveImageByResult(SourcePicture.Image, false);
-                UpdateCounter(false);
-            }
-        }
-
-        private void richTextBox_Barcode_TextChanged(object sender, EventArgs e)
-        {
-            if (richTextBox_Barcode.Text.Contains("ZBar: No QR detected.") || richTextBox_Barcode.Text.Contains("ZBar: No Barcode detected.") || richTextBox_Barcode.Text.Contains("ZBar error:"))
-            {
-                SN_TextBox.Text = "";
-                QRCMMAC_TextBox.Text = "";
-                QRWANMAC_TextBox.Text = "";
-                QRMTAMAC_TextBox.Text = "";
-                QRCOMCAST_TextBox.Text = "";
-                QRTECHNICOLOR_TextBox.Text = "";
-                isScanReady = true;
-                if (richTextBox_Barcode.Text.Contains("No QR detected"))
-                {
-                    isPassQR = false;
-                }
-                else if (richTextBox_Barcode.Text.Contains("No Barcode detected"))
-                {
-                    isPassBarcode = false;
-                }
-            }
-            else
-            {
-                string[] lines = richTextBox_Barcode.Lines;
-                List<string> result = new List<string>();
-
-                foreach (string line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        result.Add(line.Trim());
-                    }
-                }
-
-                if (result.Count > 1)
-                {
-                    string firstLine = result[0];
-                    string[] parts = firstLine.Split('.');
-
-                    string ComcastModel = parts[0];
-                    string TechnicolorModel = parts[1];
-                    string SN = parts[2];
-                    string CM_MAC = parts[3];
-                    string MTA_MAC = parts[4].Substring(2);
-                    string WAN_MAC = parts[5].Substring(2);
-                    Thread.Sleep(30);
-                    SN_TextBox.Text = SN;
-                    QRCOMCAST_TextBox.Text = ComcastModel;
-                    QRTECHNICOLOR_TextBox.Text = TechnicolorModel;
-                    QRCMMAC_TextBox.Text = CM_MAC;
-                    QRWANMAC_TextBox.Text = WAN_MAC;
-                    QRMTAMAC_TextBox.Text = MTA_MAC;
-                    Thread.Sleep(10);
-                    GVL.QR_SN = SN;
-                    GVL.QR_ComcastModel = ComcastModel;
-                    GVL.QR_TechnicolorModel = TechnicolorModel;
-                    GVL.QR_CM_MAC = CM_MAC;
-                    GVL.QR_WAN_MAC = WAN_MAC;
-                    GVL.QR_MTA_MAC = MTA_MAC;
-                    isScanReady = true;
-                    isPassQR = true;
-                    isPassBarcode = true;
-                }
-            }
-        }
-
-        private void File_btn_Click(object sender, EventArgs e)
-        {
-            if (SelectModel != 1)
-            {
-                MessageBox.Show("Please select the correct model first!");
-                return;
-            }
-
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif";
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                ResetBoxCoordinates();
-
                 try
                 {
                     bool isPNReady = false;
@@ -2019,8 +2167,7 @@ namespace XB8_Program
                     GVL.OCR_Password = "";
                     GVL.OCR_LastFourNetworkName = "";
 
-                    string ImagePath = openFileDialog.FileName;
-                    Bitmap imageBitmap = new Bitmap(ImagePath);
+                    Bitmap imageBitmap = new Bitmap(fullPath);
 
                     // ROTATION
                     if (ImageRotation == 90)
@@ -2039,7 +2186,7 @@ namespace XB8_Program
                     SourcePicture.Image?.Dispose();
                     SourcePicture.Image = new Bitmap(imageBitmap);
                     SourcePicture.Refresh();
-                    
+
                     const int INPUT_SIZE = 640;
                     const float CONF_TH = 0.5f;
                     const float NMS_TH = 0.45f;
@@ -2106,6 +2253,7 @@ namespace XB8_Program
                                 sorted.RemoveAt(i);
                         }
                     }
+
 
                     foreach (var res in finalResults)
                     {
@@ -2186,19 +2334,19 @@ namespace XB8_Program
                         }
                     }
 
-                    // CROPPING + OCR
+
                     Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
-                    {
-                        { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
-                        { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
-                        { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
-                        { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
-                        { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
-                        { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
-                        { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
-                        { "LEFTSIDE", new Rectangle(GVL.StartXLEFTSIDE, GVL.StartYLEFTSIDE, GVL.WidthLEFTSIDE, GVL.HeightLEFTSIDE) },
-                        { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
-                    };
+                {
+                    { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
+                    { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
+                    { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
+                    { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
+                    { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
+                    { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
+                    { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
+                    { "LEFTSIDE", new Rectangle(GVL.StartXLEFTSIDE, GVL.StartYLEFTSIDE, GVL.WidthLEFTSIDE, GVL.HeightLEFTSIDE) },
+                    { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
+                };
 
                     richTextBox_Barcode.Clear();
 
@@ -2284,8 +2432,7 @@ namespace XB8_Program
                                     .Replace("C0M", "COM")
                                     .ToUpperInvariant();
 
-                                var match = Regex.Match(cleanLine, @"PN[:-]?([A-Z0-9]{6,})");
-                                Console.WriteLine(cleanLine);
+                                var match = Regex.Match(cleanLine, @"PN[:-]?([A-Z0-9]+)");
                                 if (match.Success && match.Groups.Count > 1)
                                 {
                                     string value = match.Groups[1].Value;
@@ -2377,7 +2524,7 @@ namespace XB8_Program
 
                             Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
 
-                            LeftPicture.Image = enhancedBitmap;
+                            FCCRegulationPicture.Image = enhancedBitmap;
                             string result = ProcessOCR_Paddle(enhancedBitmap);
 
 
@@ -2450,13 +2597,14 @@ namespace XB8_Program
 
                                 string cleanedResult = result
                                     .Replace("\n", " ")
-                                .Replace("\r", " ")
-                                .Replace("  ", " ")
-                                .Replace(".", " ")
-                                .Replace("OE", "OF")
-                                .Replace("0", "O")
-                                .Replace("4", "A")
-                                .Replace("l", "I")
+                                    .Replace("\r", " ")
+                                    .Replace("  ", " ")
+                                    .Replace(".", " ")
+                                    .Replace("OE", "OF")
+                                    .Replace("0", "O")
+                                    .Replace("4", "A")
+                                    .Replace("l", "I")
+
                                     .Trim()
                                     .ToUpperInvariant()
                                     .Replace(" ", "");
@@ -2480,6 +2628,720 @@ namespace XB8_Program
                     if (isPNReady && isFCCIDReady && isCMMACReady && isWANMACReady &&
                         isMTAMACReady && isNETWORKReady && isPasswordReady &&
                         isLeftLabelReady && isRightLabelReady)
+                    {
+                        isOCRReady = true;
+                    }
+                    else
+                    {
+                        CC.WriteCoilMemory(NGCoil, true);
+                        string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                        AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                        AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            LabelResult.Text = "NG";
+                            LabelResult.ForeColor = Color.Red;
+                        }));
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(NGCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, false);
+                        UpdateCounter(false);
+                        _ = MQTT.SendFail("OCR_Fail");
+                    }
+
+                    CheckReady();
+                }
+                catch (Exception ex)
+                {
+                    CC.WriteCoilMemory(NGCoil, true);
+                    string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                    AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                    AppendLogText("Error ocured" + ex.Message, Color.Red);
+                    this.Invoke(new Action(() =>
+                    {
+                        LabelResult.Text = "NG";
+                        LabelResult.ForeColor = Color.Red;
+                    }));
+                    Thread.Sleep(200);
+                    CC.WriteCoilMemory(NGCoil, false);
+                    if (CC.ErrorCode == 1)
+                    {
+                        AppendLogText(CC.ErrorString, Color.Red);
+                        CC.ErrorCode = 0;
+                    }
+                    SaveImageByResult(SourcePicture.Image, false);
+                    UpdateCounter(false);
+                    _ = MQTT.SendFail("OCR_Fail");
+                }
+            }
+            else if (SelectModel == 2)
+            {
+                try
+                {
+                    bool isPNReady = false;
+                    bool isFCCIDReady = false;
+                    bool isINPUTReady = false;
+                    bool isSNReady = false;
+                    bool isCMMACReady = false;
+                    bool isMTAMACReady = false;
+                    bool isMADEReady = false;
+                    bool isREGULATIONReady = false;
+                    bool isNETWORKReady = false;
+                    bool isPasswordReady = false;
+                    bool isRightLabelReady = false;
+
+                    PN_TextBox.Text = "";
+                    FCCID_TextBox.Text = "";
+                    NETWORKNAME_TextBox.Text = "";
+                    PASSWORD_TextBox.Text = "";
+
+                    GVL.OCR_PN = "";
+                    GVL.OCR_FCCID = "";
+                    GVL.OCR_NetworkName = "";
+                    GVL.OCR_LastFourNetworkName = "";
+                    GVL.OCR_Password = "";
+                    GVL.OCR_SN = "";
+
+                    Bitmap imageBitmap = new Bitmap(fullPath);
+
+                    // ROTATION
+                    if (ImageRotation == 90)
+                        imageBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    else if (ImageRotation == 180)
+                        imageBitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                    else if (ImageRotation == 270)
+                        imageBitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+
+                    SourcePicture.Image?.Dispose();
+                    SourcePicture.Image = new Bitmap(imageBitmap);
+                    SourcePicture.Refresh();
+
+                    const int INPUT_SIZE = 320;
+                    const float CONF_TH = 0.5f;
+                    const float NMS_TH = 0.45f;
+
+                    var inputTensor = BitmapToTensor(imageBitmap, INPUT_SIZE, INPUT_SIZE);
+
+                    var results = _session.Run(new[]
+                    {
+                NamedOnnxValue.CreateFromTensor(_inputName, inputTensor)
+            });
+
+                    var output = results.First().AsTensor<float>();
+                    var dims = output.Dimensions.ToArray();
+
+                    int rows = dims[1];
+                    int cols = dims[2];
+
+                    float scaleX = (float)imageBitmap.Width / INPUT_SIZE;
+                    float scaleY = (float)imageBitmap.Height / INPUT_SIZE;
+
+                    var candidates = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                    for (int i = 0; i < cols; i++)
+                    {
+                        float maxScore = 0;
+                        int classId = 0;
+
+                        for (int c = 4; c < rows; c++)
+                        {
+                            if (output[0, c, i] > maxScore)
+                            {
+                                maxScore = output[0, c, i];
+                                classId = c - 4;
+                            }
+                        }
+
+                        if (maxScore > CONF_TH)
+                        {
+                            float cx = output[0, 0, i] * scaleX;
+                            float cy = output[0, 1, i] * scaleY;
+                            float w = output[0, 2, i] * scaleX;
+                            float h = output[0, 3, i] * scaleY;
+
+                            int x = (int)(cx - w / 2);
+                            int y = (int)(cy - h / 2);
+
+                            candidates.Add((new OpenCvSharp.Rect(x, y, (int)w, (int)h), maxScore, classId));
+                        }
+                    }
+
+                    // NMS
+                    var sorted = candidates.OrderByDescending(c => c.Score).ToList();
+                    var finalResults = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                    while (sorted.Count > 0)
+                    {
+                        var current = sorted[0];
+                        finalResults.Add(current);
+                        sorted.RemoveAt(0);
+
+                        for (int i = sorted.Count - 1; i >= 0; i--)
+                        {
+                            if (CalculateIoU(current.Box, sorted[i].Box) > NMS_TH)
+                                sorted.RemoveAt(i);
+                        }
+                    }
+
+                    // FILL GVL
+                    foreach (var res in finalResults)
+                    {
+                        string label = GetLabelName(res.ClassId);
+
+                        switch (label)
+                        {
+                            case "PN":
+                                GVL.StartXPN = res.Box.X;
+                                GVL.StartYPN = res.Box.Y;
+                                GVL.WidthPN = res.Box.Width;
+                                GVL.HeightPN = res.Box.Height;
+                                break;
+
+                            case "FCCID":
+                                GVL.StartXFCCID = res.Box.X;
+                                GVL.StartYFCCID = res.Box.Y;
+                                GVL.WidthFCCID = res.Box.Width;
+                                GVL.HeightFCCID = res.Box.Height;
+                                break;
+
+                            case "INPUT":
+                                GVL.StartXINPUT = res.Box.X;
+                                GVL.StartYINPUT = res.Box.Y;
+                                GVL.WidthINPUT = res.Box.Width;
+                                GVL.HeightINPUT = res.Box.Height;
+                                break;
+
+                            case "BARCODE":
+                                GVL.StartXBARCODE = res.Box.X;
+                                GVL.StartYBARCODE = res.Box.Y;
+                                GVL.WidthBARCODE = res.Box.Width;
+                                GVL.HeightBARCODE = res.Box.Height;
+                                break;
+
+                            case "SN":
+                                GVL.StartXSN = res.Box.X;
+                                GVL.StartYSN = res.Box.Y;
+                                GVL.WidthSN = res.Box.Width;
+                                GVL.HeightSN = res.Box.Height;
+                                break;
+
+                            case "MAC":
+                                GVL.StartXMAC = res.Box.X;
+                                GVL.StartYMAC = res.Box.Y;
+                                GVL.WidthMAC = res.Box.Width;
+                                GVL.HeightMAC = res.Box.Height;
+                                break;
+
+                            case "MADE":
+                                GVL.StartXMADE = res.Box.X;
+                                GVL.StartYMADE = res.Box.Y;
+                                GVL.WidthMADE = res.Box.Width;
+                                GVL.HeightMADE = res.Box.Height;
+                                break;
+
+                            case "REGULATION":
+                                GVL.StartXREGULATION = res.Box.X;
+                                GVL.StartYREGULATION = res.Box.Y;
+                                GVL.WidthREGULATION = res.Box.Width;
+                                GVL.HeightREGULATION = res.Box.Height;
+                                break;
+
+                            case "SSID":
+                                GVL.StartXSSID = res.Box.X;
+                                GVL.StartYSSID = res.Box.Y;
+                                GVL.WidthSSID = res.Box.Width;
+                                GVL.HeightSSID = res.Box.Height;
+                                break;
+
+                            case "PASSWORD":
+                                GVL.StartXPASSWORD = res.Box.X;
+                                GVL.StartYPASSWORD = res.Box.Y;
+                                GVL.WidthPASSWORD = res.Box.Width;
+                                GVL.HeightPASSWORD = res.Box.Height;
+                                break;
+
+                            case "QR":
+                                GVL.StartXQR = res.Box.X;
+                                GVL.StartYQR = res.Box.Y;
+                                GVL.WidthQR = res.Box.Width;
+                                GVL.HeightQR = res.Box.Height;
+                                break;
+
+                            case "RIGHTSIDE":
+                                GVL.StartXRIGHTSIDE = res.Box.X;
+                                GVL.StartYRIGHTSIDE = res.Box.Y;
+                                GVL.WidthRIGHTSIDE = res.Box.Width;
+                                GVL.HeightRIGHTSIDE = res.Box.Height;
+                                break;
+
+                            case "LOGOAREA":
+                                GVL.StartXLOGOAREA = res.Box.X;
+                                GVL.StartYLOGOAREA = res.Box.Y;
+                                GVL.WidthLOGOAREA = res.Box.Width;
+                                GVL.HeightLOGOAREA = res.Box.Height;
+                                GVL.IsLogoDetected = true;
+                                break;
+                        }
+                    }
+
+                    // CROPPING 
+                    Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
+                        {
+                            { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
+                            { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
+                            { "INPUT", new Rectangle(GVL.StartXINPUT, GVL.StartYINPUT, GVL.WidthINPUT, GVL.HeightINPUT) },
+                            { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
+                            { "SN", new Rectangle(GVL.StartXSN, GVL.StartYSN, GVL.WidthSN, GVL.HeightSN) },
+                            { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
+                            { "MADE", new Rectangle(GVL.StartXMADE, GVL.StartYMADE, GVL.WidthMADE, GVL.HeightMADE) },
+                            { "REGULATION", new Rectangle(GVL.StartXREGULATION, GVL.StartYREGULATION, GVL.WidthREGULATION, GVL.HeightREGULATION) },
+                            { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
+                            { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
+                            { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
+                            { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
+                        };
+
+                    richTextBox_Barcode.Clear();
+
+                    foreach (var region in regions)
+                    {
+                        if (region.Value.Width <= 0 || region.Value.Height <= 0)
+                            continue;
+
+                        Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
+
+                        if (region.Key == "QR")
+                        {
+                            QRPicture.Image = cropped;
+                            ProcessBarcodeZbar(cropped);
+                            richTextBox_Barcode.AppendText($"{QRResult}\n");
+                        }
+                        else if (region.Key == "BARCODE")
+                        {
+                            BarcodePicture.Image = cropped;
+                            ProcessBarcodeZbar(cropped);
+                            richTextBox_Barcode.AppendText($"{BarcodeResult}\n");
+                        }
+                        else if (region.Key == "PN")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7);
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                            ModelPicture.Image = enhancedBitmap;
+
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+
+                            string merged = result
+                                .Replace("\n", "")
+                                .Replace("\r", "")
+                                .Replace(" ", "")
+                                .ToUpperInvariant();
+
+                            Console.WriteLine($"[MERGED OCR]: {merged}");
+
+                            // CLEANING
+                            string cleanLine = merged
+                                .Replace(".", "")
+                                .Replace("49B1", "4981")
+                                .Replace("498I", "4981")
+                                .Replace("49BI", "4981")
+                                .Replace("4881", "4981")
+                                .Replace("4B81", "4981")
+                                .Replace("4BB1", "4981")
+                                .Replace("48BI", "4981")
+                                .Replace("4BBI", "4981")
+                                .Replace("C0X", "COX");
+
+                            Console.WriteLine($"[CLEANED]: {cleanLine}");
+
+                            // REGEX 
+                            var match = Regex.Match(cleanLine, @"[A-Z]{3}[0-9]{4}[A-Z]{3}");
+
+                            if (match.Success)
+                            {
+                                string value = match.Value;
+
+                                GVL.OCR_PN = value;
+                                PN_TextBox.Text = value;
+
+                                Console.WriteLine($"[PN DETECTED] {value}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("[PN FAILED]");
+                            }
+
+                            isPNReady = true;
+                        }
+                        else if (region.Key == "FCCID")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                            FCCIDPicture.Image = enhancedBitmap;
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+                            string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            foreach (var line in lines)
+                            {
+                                string cleanLine = line.Trim()
+                                    .Replace(".", "")
+                                    .Replace("49B1", "4981")
+                                    .Replace("498I", "4981")
+                                    .Replace("49BI", "4981")
+                                    .Replace("4881", "4981")
+                                    .Replace("4B81", "4981")
+                                    .Replace("4BB1", "4981")
+                                    .Replace("48BI", "4981")
+                                    .Replace("4BBI", "4981")
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+                                var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
+                                if (match.Success && match.Groups.Count > 1)
+                                {
+                                    string value = match.Groups[1].Value;
+                                    GVL.OCR_FCCID = value;
+                                    FCCID_TextBox.Text = value;
+                                    break;
+                                }
+                            }
+                            isFCCIDReady = true;
+                        }
+                        else if (region.Key == "SN")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7);
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                            SNPicture.Image = enhancedBitmap;
+
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+                            string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            foreach (var line in lines)
+                            {
+                                string cleanLine = line.Trim()
+                                    .Replace(" ", "")
+                                    .Replace("b", "6")
+                                    .Replace("S", "5")
+                                    .Replace("g", "9")
+                                    .Replace("B", "8")
+                                    .Replace("A", "4")
+                                    .Replace(".", "")
+                                    .Replace("-", "")
+                                    .Replace("O", "0")
+                                    .Replace("I", "1")
+                                    .Replace("L", "1")
+                                    .ToUpperInvariant();
+
+                                string digitsOnly = Regex.Replace(cleanLine, @"\D", "");
+
+                                var match = Regex.Match(digitsOnly, @"\d{18}");
+
+                                if (match.Success)
+                                {
+                                    string value = match.Value;
+
+                                    GVL.OCR_SN = value;
+                                    OCRSN_TextBox.Text = value;
+
+                                    Console.WriteLine($"[SN DETECTED] {value}");
+
+                                    break;
+                                }
+                            }
+
+                            isSNReady = true;
+                        }
+                        else if (region.Key == "MAC")
+                        {
+                            MACPicture.Image = cropped;
+                            string result = ProcessOCR_Paddle(cropped);
+
+                            var validLines = result
+                                .Replace("O", "0").Replace("I", "1")
+                                .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(l => l.Trim().ToUpperInvariant())
+                                .Where(l => !string.IsNullOrWhiteSpace(l) && l != ",")
+                                .ToList();
+
+                            var matches = validLines
+                                .SelectMany(l => Regex.Matches(l, @"[A-Z0-9]{12}").Cast<Match>())
+                                .Select(m => m.Value)
+                                .ToList();
+
+                            if (matches.Count >= 2)
+                            {
+                                GVL.OCR_CM_MAC = matches[0];
+                                GVL.OCR_MTA_MAC = matches[1];
+
+                                OCRCMMAC_TextBox.Text = matches[0];
+                                OCRMTAMAC_TextBox.Text = matches[1];
+                            }
+                            else
+                            {
+                                if (matches.Count > 0) { GVL.OCR_CM_MAC = matches[0]; OCRCMMAC_TextBox.Text = matches[0]; } else { OCRCMMAC_TextBox.Text = "Not Found"; }
+                                if (matches.Count > 1) { GVL.OCR_MTA_MAC = matches[1]; OCRMTAMAC_TextBox.Text = matches[1]; } else { OCRMTAMAC_TextBox.Text = "Not Found"; }
+                            }
+
+                            isCMMACReady = true;
+                            isMTAMACReady = true;
+                        }
+                        else if (region.Key == "SSID")
+                        {
+                            SSIDPicture.Image = cropped;
+                            string result = ProcessOCR_Paddle(cropped);
+                            string value = ExtractValueFromOcrResult(result, "SSID");
+
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                NETWORKNAME_TextBox.Text = value;
+                                GVL.OCR_NetworkName = value;
+
+                                string[] parts = value.Split('-');
+                                if (parts.Length > 1)
+                                {
+                                    string lastPart = parts.Last().Trim();
+                                    if (lastPart.Length >= 4)
+                                        GVL.OCR_LastFourNetworkName = lastPart.Substring(lastPart.Length - 4);
+                                    else
+                                        GVL.OCR_LastFourNetworkName = lastPart;
+                                }
+                            }
+                            isNETWORKReady = true;
+                        }
+                        else if (region.Key == "PASSWORD")
+                        {
+                            PasswordPicture.Image = cropped;
+                            string result = ProcessOCR_Paddle(cropped);
+                            string value = ExtractValueFromOcrResult(result, "WORD");
+
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                PASSWORD_TextBox.Text = value;
+                                GVL.OCR_Password = value;
+                            }
+                            isPasswordReady = true;
+                        }
+                        else if (region.Key == "INPUT")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                            InputPicture.Image = enhancedBitmap;
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                            if (!string.IsNullOrWhiteSpace(result))
+                            {
+                                string referenceText = "INPUT120V46A";
+
+                                if (result.StartsWith("nput") || result.StartsWith("1nput") || result.StartsWith("lnput"))
+                                {
+                                    result = result
+                                        .Replace("nput", "Input")
+                                        .Replace("1nput", "Input")
+                                        .Replace("lnput", "Input");
+                                }
+
+                                string cleanedResult = result
+                                    .Replace("\n", " ")
+                                    .Replace("\r", " ")
+                                    .Replace(":", " ")
+                                    .Replace(".", " ")
+                                    .Replace("-", " ")
+                                    .Replace("B", "6")
+                                    .Replace("8", "6")
+                                    .Replace("OV", "0V")
+                                    .Replace("  ", " ")
+                                    .Trim()
+                                    .ToUpperInvariant()
+                                    .Replace(" ", "");
+
+                                string cleanedReference = referenceText
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+
+                                double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                InputScore = matchScore;
+
+                                Console.WriteLine($"[INPUT OCR]: {result}");
+                                Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                Console.WriteLine($"[INPUT Match Score] {matchScore:0.0}%");
+
+                            }
+                            isINPUTReady = true;
+                        }
+                        else if (region.Key == "MADE")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                            //FCCRegulationPicture.Image = enhancedBitmap;
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                            if (!string.IsNullOrWhiteSpace(result))
+                            {
+                                string referenceText = "MADEININDONESIA";
+
+                                string cleanedResult = result
+                                    .Replace("\n", " ")
+                                    .Replace("\r", " ")
+                                    .Replace(":", " ")
+                                    .Replace(".", " ")
+                                    .Replace("-", " ")
+                                    .Replace("0", "o")
+                                    .Replace("c", "e")
+                                    .Replace("l", "I")
+                                    .Replace("Mode", "Made")
+                                    .Replace("Mado", "Made")
+                                    .Replace("Modo", "Made")
+                                    .Replace("Mede", "Made")
+                                    .Replace("Mada", "Made")
+                                    .Replace("II", "I")
+                                    .Replace("Ind0nesia", "Indonesia")
+                                    .Replace("lndonesia", "Indonesia")
+                                    .Replace("lnd0nesia", "Indonesia")
+                                    .Replace("  ", " ")
+                                    .Trim()
+                                    .ToUpperInvariant()
+                                    .Replace(" ", "");
+
+                                string cleanedReference = referenceText
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+
+                                double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                MadeScore = matchScore;
+
+                                Console.WriteLine($"[MADE OCR]: {result}");
+                                Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                Console.WriteLine($"[MADE Match Score] {matchScore:0.0}%");
+
+                            }
+                            isMADEReady = true;
+                        }
+                        else if (region.Key == "REGULATION")
+                        {
+                            Mat matCropped = BitmapConverter.ToMat(cropped);
+                            Mat enhanced = new Mat();
+                            matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                            Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                            FCCRegulationPicture.Image = enhancedBitmap;
+                            string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                            if (!string.IsNullOrWhiteSpace(result))
+                            {
+                                string referenceText = "FCCREGULATIONSRESTRICTTOINDOORUSEONLY";
+
+                                string cleanedResult = result
+                                    .Replace("\n", " ")
+                                    .Replace("\r", " ")
+                                    .Replace(":", " ")
+                                    .Replace(".", " ")
+                                    .Replace("-", " ")
+                                    .Replace("rogulatlons", "regulations")
+                                    .Replace("roguiatlons", "regulations")
+                                    .Replace("roguiations", "regulations")
+                                    .Replace("regulatlons", "regulations")
+                                    .Replace("reguiatlons", "regulations")
+                                    .Replace("reguiations", "regulations")
+                                    .Replace("restrlct", "restrict")
+                                    .Replace("resfrlct", "restrict")
+                                    .Replace("resfrict", "restrict")
+                                    .Replace("inaoor", "indoor")
+                                    .Replace("Inaoor", "indoor")
+                                    .Replace("lnaoor", "indoor")
+                                    .Replace("lndoor", "indoor")
+                                    .Replace("1ndoor", "indoor")
+                                    .Replace("1naoor", "indoor")
+                                    .Replace("onty", "only")
+                                    .Replace("onfy", "only")
+                                    .Replace("oniy", "only")
+                                    .Replace("onjy", "only")
+                                    .Replace("onIy", "only")
+                                    .Replace("  ", " ")
+                                    .Trim()
+                                    .ToUpperInvariant()
+                                    .Replace(" ", "");
+
+                                string cleanedReference = referenceText
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+
+                                double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                LeftLabelScore = matchScore;
+
+                                Console.WriteLine($"[Regulation OCR]: {result}");
+                                Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                Console.WriteLine($"[Regulation Match Score] {matchScore:0.0}%");
+
+                            }
+                            isREGULATIONReady = true;
+                        }
+                        else if (region.Key == "RIGHTSIDE")
+                        {
+                            RightPicture.Image = cropped;
+                            string result = ProcessOCR_Paddle(cropped);
+
+                            if (!string.IsNullOrWhiteSpace(result))
+                            {
+                                string referenceText = "PROPERTYOFCOXNOTFORRESALEREMOVINGTHISSTICKERORTAMPERINGWITHTHISEQUIPMENTISAVIOLATIONOFFEDERALANDSTATELAW";
+
+                                string cleanedResult = result
+                                    .Replace("\n", " ")
+                                .Replace("\r", " ")
+                                .Replace("  ", " ")
+                                .Replace(".", " ")
+                                .Replace("OE", "OF")
+                                .Replace("0", "O")
+                                .Replace("4", "A")
+                                .Replace("l", "I")
+                                .Replace("WTH", "WITH")
+                                .Replace("WlTH", "WITH")
+                                    .Trim()
+                                    .ToUpperInvariant()
+                                    .Replace(" ", "");
+
+                                string cleanedReference = referenceText
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+
+                                double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                RightLabelScore = matchScore;
+
+                                Console.WriteLine($"[Right Label OCR]: {result}");
+                                Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                Console.WriteLine($"[RightLabel Match Score] {matchScore:0.0}%");
+
+                            }
+                            isRightLabelReady = true;
+                        }
+                    }
+                    if (isPNReady && isFCCIDReady && isINPUTReady && isCMMACReady && isSNReady &&
+                        isMTAMACReady && isMADEReady && isREGULATIONReady && isNETWORKReady && isPasswordReady && isRightLabelReady)
                     {
                         isOCRReady = true;
                     }
@@ -2531,6 +3393,1402 @@ namespace XB8_Program
             }
         }
 
+        private void richTextBox_Barcode_TextChanged(object sender, EventArgs e)
+        {
+            if (SelectModel == 1)
+            {
+                Console.WriteLine("com_qr_barcode");
+                if (richTextBox_Barcode.Text.Contains("ZBar: No QR detected.") || richTextBox_Barcode.Text.Contains("ZBar: No Barcode detected.") || richTextBox_Barcode.Text.Contains("ZBar error:"))
+                {
+                    SN_TextBox.Text = "";
+                    QRCMMAC_TextBox.Text = "";
+                    QRWANMAC_TextBox.Text = "";
+                    QRMTAMAC_TextBox.Text = "";
+                    QRCOMCAST_TextBox.Text = "";
+                    QRTECHNICOLOR_TextBox.Text = "";
+                    isScanReady = true;
+                    if (richTextBox_Barcode.Text.Contains("No QR detected"))
+                    {
+                        isPassQR = false;
+                        failReason = "QR_Not_Recognized";
+                    }
+                    else if (richTextBox_Barcode.Text.Contains("No Barcode detected"))
+                    {
+                        isPassBarcode = false;
+                        failReason = "Barcode_Not_Recognized";
+                    }
+                }
+                else
+                {
+                    string[] lines = richTextBox_Barcode.Lines;
+                    List<string> result = new List<string>();
+
+                    foreach (string line in lines)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            result.Add(line.Trim());
+                        }
+                    }
+
+                    if (result.Count > 1)
+                    {
+                        string firstLine = result[0];
+                        string[] parts = firstLine.Split('.');
+
+                        string ComcastModel = parts[0];
+                        string TechnicolorModel = parts[1];
+                        string SN = parts[2];
+                        string CM_MAC = parts[3];
+                        string MTA_MAC = parts[4].Substring(2);
+                        string WAN_MAC = parts[5].Substring(2);
+                        Thread.Sleep(30);
+                        SN_TextBox.Text = SN;
+                        QRCOMCAST_TextBox.Text = ComcastModel;
+                        QRTECHNICOLOR_TextBox.Text = TechnicolorModel;
+                        QRCMMAC_TextBox.Text = CM_MAC;
+                        QRWANMAC_TextBox.Text = WAN_MAC;
+                        QRMTAMAC_TextBox.Text = MTA_MAC;
+                        Thread.Sleep(10);
+                        GVL.QR_SN = SN;
+                        GVL.QR_ComcastModel = ComcastModel;
+                        GVL.QR_TechnicolorModel = TechnicolorModel;
+                        GVL.QR_CM_MAC = CM_MAC;
+                        GVL.QR_WAN_MAC = WAN_MAC;
+                        GVL.QR_MTA_MAC = MTA_MAC;
+                        isScanReady = true;
+                        isPassQR = true;
+                        isPassBarcode = true;
+                    }
+                }
+            }
+            else if (SelectModel == 2)
+            {
+                if (richTextBox_Barcode.Text.Contains("ZBar: No QR detected.") || richTextBox_Barcode.Text.Contains("ZBar: No Barcode detected.") || richTextBox_Barcode.Text.Contains("ZBar error:"))
+                {
+                    SN_TextBox.Text = "";
+                    QRCMMAC_TextBox.Text = "";
+                    QRWANMAC_TextBox.Text = "";
+                    QRMTAMAC_TextBox.Text = "";
+                    QRCOMCAST_TextBox.Text = "";
+                    QRTECHNICOLOR_TextBox.Text = "";
+                    isScanReady = true;
+                    if (richTextBox_Barcode.Text.Contains("No QR detected"))
+                    {
+                        isPassQR = false;
+                        failReason = "QR_Not_Recognized";
+                    }
+                    else if (richTextBox_Barcode.Text.Contains("No Barcode detected"))
+                    {
+                        isPassBarcode = false;
+                        failReason = "Barcode_Not_Recognized";
+                    }
+                }
+                else
+                {
+                    string[] lines = richTextBox_Barcode.Lines;
+                    List<string> result = new List<string>();
+
+                    foreach (string line in lines)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            result.Add(line.Trim());
+                        }
+                    }
+
+                    if (result.Count > 1)
+                    {
+                        string firstLine = result[0];
+                        string secondLine = result[1];
+
+                        string SN = firstLine.Trim();
+                        SN_TextBox.Text = SN;
+                        GVL.Barcode_SN = SN;
+
+                        isScanReady = true;
+                        isPassQR = true;
+                        isPassBarcode = true;
+                    }
+                }
+            }
+            
+        }
+
+        private void File_btn_Click(object sender, EventArgs e)
+        {
+            if (SelectModel == 1)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    ResetBoxCoordinates();
+
+                    try
+                    {
+                        bool isPNReady = false;
+                        bool isFCCIDReady = false;
+                        bool isCMMACReady = false;
+                        bool isWANMACReady = false;
+                        bool isMTAMACReady = false;
+                        bool isNETWORKReady = false;
+                        bool isPasswordReady = false;
+                        bool isLeftLabelReady = false;
+                        bool isRightLabelReady = false;
+
+                        PN_TextBox.Text = "";
+                        FCCID_TextBox.Text = "";
+                        OCRCMMAC_TextBox.Text = "";
+                        OCRWANMAC_TextBox.Text = "";
+                        OCRMTAMAC_TextBox.Text = "";
+                        NETWORKNAME_TextBox.Text = "";
+                        PASSWORD_TextBox.Text = "";
+
+                        GVL.OCR_PN = "";
+                        GVL.OCR_FCCID = "";
+                        GVL.OCR_CM_MAC = "";
+                        GVL.OCR_WAN_MAC = "";
+                        GVL.OCR_MTA_MAC = "";
+                        GVL.OCR_NetworkName = "";
+                        GVL.OCR_Password = "";
+                        GVL.OCR_LastFourNetworkName = "";
+
+                        string ImagePath = openFileDialog.FileName;
+                        Bitmap imageBitmap = new Bitmap(ImagePath);
+
+                        // ROTATION
+                        if (ImageRotation == 90)
+                        {
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                        }
+                        else if (ImageRotation == 180)
+                        {
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                        }
+                        else if (ImageRotation == 270)
+                        {
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                        }
+
+                        SourcePicture.Image?.Dispose();
+                        SourcePicture.Image = new Bitmap(imageBitmap);
+                        SourcePicture.Refresh();
+
+                        const int INPUT_SIZE = 640;
+                        const float CONF_TH = 0.5f;
+                        const float NMS_TH = 0.45f;
+
+                        var inputTensor = BitmapToTensor(imageBitmap, INPUT_SIZE, INPUT_SIZE);
+
+                        var results = _session.Run(new[]
+                        {
+    NamedOnnxValue.CreateFromTensor(_inputName, inputTensor)
+});
+
+                        var output = results.First().AsTensor<float>();
+                        var dims = output.Dimensions.ToArray(); // expected [1,84,8400]
+
+                        int rows = dims[1];
+                        int cols = dims[2];
+
+                        float scaleX = (float)imageBitmap.Width / INPUT_SIZE;
+                        float scaleY = (float)imageBitmap.Height / INPUT_SIZE;
+
+                        var candidates = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                        for (int i = 0; i < cols; i++)
+                        {
+                            float maxScore = 0;
+                            int classId = 0;
+
+                            for (int c = 4; c < rows; c++)
+                            {
+                                if (output[0, c, i] > maxScore)
+                                {
+                                    maxScore = output[0, c, i];
+                                    classId = c - 4;
+                                }
+                            }
+
+                            if (maxScore > CONF_TH)
+                            {
+                                float cx = output[0, 0, i] * scaleX;
+                                float cy = output[0, 1, i] * scaleY;
+                                float w = output[0, 2, i] * scaleX;
+                                float h = output[0, 3, i] * scaleY;
+
+                                int x = (int)(cx - w / 2);
+                                int y = (int)(cy - h / 2);
+
+                                candidates.Add((new OpenCvSharp.Rect(x, y, (int)w, (int)h), maxScore, classId));
+                            }
+                        }
+
+                        // NMS
+                        var sorted = candidates.OrderByDescending(c => c.Score).ToList();
+                        var finalResults = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                        while (sorted.Count > 0)
+                        {
+                            var current = sorted[0];
+                            finalResults.Add(current);
+                            sorted.RemoveAt(0);
+
+                            for (int i = sorted.Count - 1; i >= 0; i--)
+                            {
+                                if (CalculateIoU(current.Box, sorted[i].Box) > NMS_TH)
+                                    sorted.RemoveAt(i);
+                            }
+                        }
+
+                        foreach (var res in finalResults)
+                        {
+                            string label = GetLabelName(res.ClassId);
+
+                            switch (label)
+                            {
+                                case "MAC":
+                                    GVL.StartXMAC = res.Box.X;
+                                    GVL.StartYMAC = res.Box.Y;
+                                    GVL.WidthMAC = res.Box.Width;
+                                    GVL.HeightMAC = res.Box.Height;
+                                    break;
+
+                                case "SSID":
+                                    GVL.StartXSSID = res.Box.X;
+                                    GVL.StartYSSID = res.Box.Y;
+                                    GVL.WidthSSID = res.Box.Width;
+                                    GVL.HeightSSID = res.Box.Height;
+                                    break;
+
+                                case "PASSWORD":
+                                    GVL.StartXPASSWORD = res.Box.X;
+                                    GVL.StartYPASSWORD = res.Box.Y;
+                                    GVL.WidthPASSWORD = res.Box.Width;
+                                    GVL.HeightPASSWORD = res.Box.Height;
+                                    break;
+
+                                case "QR":
+                                    GVL.StartXQR = res.Box.X;
+                                    GVL.StartYQR = res.Box.Y;
+                                    GVL.WidthQR = res.Box.Width;
+                                    GVL.HeightQR = res.Box.Height;
+                                    break;
+
+                                case "BARCODE":
+                                    GVL.StartXBARCODE = res.Box.X;
+                                    GVL.StartYBARCODE = res.Box.Y;
+                                    GVL.WidthBARCODE = res.Box.Width;
+                                    GVL.HeightBARCODE = res.Box.Height;
+                                    break;
+
+                                case "PN":
+                                    GVL.StartXPN = res.Box.X;
+                                    GVL.StartYPN = res.Box.Y;
+                                    GVL.WidthPN = res.Box.Width;
+                                    GVL.HeightPN = res.Box.Height;
+                                    break;
+
+                                case "FCCID":
+                                    GVL.StartXFCCID = res.Box.X;
+                                    GVL.StartYFCCID = res.Box.Y;
+                                    GVL.WidthFCCID = res.Box.Width;
+                                    GVL.HeightFCCID = res.Box.Height;
+                                    break;
+
+                                case "LEFTSIDE":
+                                    GVL.StartXLEFTSIDE = res.Box.X;
+                                    GVL.StartYLEFTSIDE = res.Box.Y;
+                                    GVL.WidthLEFTSIDE = res.Box.Width;
+                                    GVL.HeightLEFTSIDE = res.Box.Height;
+                                    break;
+
+                                case "RIGHTSIDE":
+                                    GVL.StartXRIGHTSIDE = res.Box.X;
+                                    GVL.StartYRIGHTSIDE = res.Box.Y;
+                                    GVL.WidthRIGHTSIDE = res.Box.Width;
+                                    GVL.HeightRIGHTSIDE = res.Box.Height;
+                                    break;
+
+                                case "LOGOAREA":
+                                    GVL.StartXLOGOAREA = res.Box.X;
+                                    GVL.StartYLOGOAREA = res.Box.Y;
+                                    GVL.WidthLOGOAREA = res.Box.Width;
+                                    GVL.HeightLOGOAREA = res.Box.Height;
+                                    GVL.IsLogoDetected = true;
+                                    break;
+                            }
+                        }
+
+                        // CROPPING + OCR
+                        Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
+                    {
+                        { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
+                        { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
+                        { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
+                        { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
+                        { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
+                        { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
+                        { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
+                        { "LEFTSIDE", new Rectangle(GVL.StartXLEFTSIDE, GVL.StartYLEFTSIDE, GVL.WidthLEFTSIDE, GVL.HeightLEFTSIDE) },
+                        { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
+                    };
+
+                        richTextBox_Barcode.Clear();
+
+                        foreach (var region in regions)
+                        {
+                            if (region.Value.Width <= 0 || region.Value.Height <= 0)
+                                continue;
+
+                            Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
+
+                            if (region.Key == "QR")
+                            {
+                                QRPicture.Image = cropped;
+                                ProcessBarcodeZbar(cropped);
+                                richTextBox_Barcode.AppendText($"{QRResult}\n");
+                            }
+                            else if (region.Key == "BARCODE")
+                            {
+                                BarcodePicture.Image = cropped;
+                                ProcessBarcodeZbar(cropped);
+                                richTextBox_Barcode.AppendText($"{BarcodeResult}\n");
+                            }
+                            else if (region.Key == "SSID")
+                            {
+                                SSIDPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+                                string value = ExtractValueFromOcrResult(result, "SSID");
+
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    NETWORKNAME_TextBox.Text = value;
+                                    GVL.OCR_NetworkName = value;
+
+                                    string[] parts = value.Split('-');
+                                    if (parts.Length > 1)
+                                    {
+                                        string lastPart = parts.Last().Trim();
+                                        if (lastPart.Length >= 4)
+                                            GVL.OCR_LastFourNetworkName = lastPart.Substring(lastPart.Length - 4);
+                                        else
+                                            GVL.OCR_LastFourNetworkName = lastPart;
+                                    }
+                                }
+                                isNETWORKReady = true;
+                            }
+                            else if (region.Key == "PASSWORD")
+                            {
+                                PasswordPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+                                string value = ExtractValueFromOcrResult(result, "WORD");
+
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    PASSWORD_TextBox.Text = value;
+                                    GVL.OCR_Password = value;
+                                }
+                                isPasswordReady = true;
+                            }
+                            else if (region.Key == "PN")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                                ModelPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+                                string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                foreach (var line in lines)
+                                {
+                                    string cleanLine = line.Trim()
+                                        .Replace(" ", "")
+                                        .Replace(".", "")
+                                        .Replace("49B1", "4981")
+                                        .Replace("498I", "4981")
+                                        .Replace("49BI", "4981")
+                                        .Replace("4881", "4981")
+                                        .Replace("4B81", "4981")
+                                        .Replace("4BB1", "4981")
+                                        .Replace("48BI", "4981")
+                                        .Replace("4BBI", "4981")
+                                        .Replace("C0M", "COM")
+                                        .ToUpperInvariant();
+
+                                    var match = Regex.Match(cleanLine, @"PN[:-]?([A-Z0-9]{6,})");
+                                    Console.WriteLine(cleanLine);
+                                    if (match.Success && match.Groups.Count > 1)
+                                    {
+                                        string value = match.Groups[1].Value;
+                                        GVL.OCR_PN = value;
+                                        PN_TextBox.Text = value;
+                                        break;
+                                    }
+                                }
+                                isPNReady = true;
+                            }
+                            else if (region.Key == "FCCID")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                                FCCIDPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+                                string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                foreach (var line in lines)
+                                {
+                                    string cleanLine = line.Trim()
+                                        .Replace(".", "")
+                                        .Replace("49B1", "4981")
+                                        .Replace("498I", "4981")
+                                        .Replace("49BI", "4981")
+                                        .Replace("4881", "4981")
+                                        .Replace("4B81", "4981")
+                                        .Replace("4BB1", "4981")
+                                        .Replace("48BI", "4981")
+                                        .Replace("4BBI", "4981")
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+                                    var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
+                                    if (match.Success && match.Groups.Count > 1)
+                                    {
+                                        string value = match.Groups[1].Value;
+                                        GVL.OCR_FCCID = value;
+                                        FCCID_TextBox.Text = value;
+                                        break;
+                                    }
+                                }
+                                isFCCIDReady = true;
+                            }
+                            else if (region.Key == "MAC")
+                            {
+                                MACPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+
+                                var validLines = result
+                                    .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(l => l.Trim().ToUpperInvariant())
+                                    .Where(l => !string.IsNullOrWhiteSpace(l) && l != ",")
+                                    .ToList();
+
+                                var matches = validLines
+                                    .SelectMany(l => Regex.Matches(l, @"[A-Z0-9]{12}").Cast<Match>())
+                                    .Select(m => m.Value)
+                                    .ToList();
+
+                                if (matches.Count >= 3)
+                                {
+                                    GVL.OCR_CM_MAC = matches[0];
+                                    GVL.OCR_WAN_MAC = matches[1];
+                                    GVL.OCR_MTA_MAC = matches[2];
+
+                                    OCRCMMAC_TextBox.Text = matches[0];
+                                    OCRWANMAC_TextBox.Text = matches[1];
+                                    OCRMTAMAC_TextBox.Text = matches[2];
+                                }
+                                else
+                                {
+                                    if (matches.Count > 0) { GVL.OCR_CM_MAC = matches[0]; OCRCMMAC_TextBox.Text = matches[0]; } else { OCRCMMAC_TextBox.Text = "Not Found"; }
+                                    if (matches.Count > 1) { GVL.OCR_WAN_MAC = matches[1]; OCRWANMAC_TextBox.Text = matches[1]; } else { OCRWANMAC_TextBox.Text = "Not Found"; }
+                                    if (matches.Count > 2) { GVL.OCR_MTA_MAC = matches[2]; OCRMTAMAC_TextBox.Text = matches[2]; } else { OCRMTAMAC_TextBox.Text = "Not Found"; }
+                                }
+
+                                isCMMACReady = true;
+                                isWANMACReady = true;
+                                isMTAMACReady = true;
+                            }
+                            else if (region.Key == "LEFTSIDE")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                                FCCRegulationPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "INPUT120V46AFCCREGULATIONSRESTRICTTOINDOORUSEONLY";
+
+                                    if (result.StartsWith("nput") || result.StartsWith("1nput") || result.StartsWith("lnput"))
+                                    {
+                                        result = result
+                                            .Replace("nput", "Input")
+                                            .Replace("1nput", "Input")
+                                            .Replace("lnput", "Input");
+                                    }
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                        .Replace("\r", " ")
+                                        .Replace(":", " ")
+                                        .Replace(".", " ")
+                                        .Replace("-", " ")
+                                        .Replace("OV", "0V")
+                                        .Replace("rogulatlons", "regulations")
+                                        .Replace("roguiatlons", "regulations")
+                                        .Replace("roguiations", "regulations")
+                                        .Replace("regulatlons", "regulations")
+                                        .Replace("reguiatlons", "regulations")
+                                        .Replace("reguiations", "regulations")
+                                        .Replace("restrlct", "restrict")
+                                        .Replace("resfrlct", "restrict")
+                                        .Replace("resfrict", "restrict")
+                                        .Replace("inaoor", "indoor")
+                                        .Replace("Inaoor", "indoor")
+                                        .Replace("lnaoor", "indoor")
+                                        .Replace("lndoor", "indoor")
+                                        .Replace("1ndoor", "indoor")
+                                        .Replace("1naoor", "indoor")
+                                        .Replace("onty", "only")
+                                        .Replace("onfy", "only")
+                                        .Replace("oniy", "only")
+                                        .Replace("onjy", "only")
+                                        .Replace("onIy", "only")
+                                        .Replace("  ", " ")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    LeftLabelScore = matchScore;
+
+                                    Console.WriteLine($"[Left Label OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[LeftLabel Match Score] {matchScore:0.0}%");
+
+                                }
+                                isLeftLabelReady = true;
+                            }
+                            else if (region.Key == "RIGHTSIDE")
+                            {
+                                RightPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "PROPERTYOFCOMCASTNOTFORRESALEREMOVINGTHISSTICKERORTAMPERINGWITHTHISEQUIPMENTISAVIOLATIONOFFEDERALANDSTATELAW";
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                    .Replace("\r", " ")
+                                    .Replace("  ", " ")
+                                    .Replace(".", " ")
+                                    .Replace("OE", "OF")
+                                    .Replace("0", "O")
+                                    .Replace("4", "A")
+                                    .Replace("l", "I")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    RightLabelScore = matchScore;
+
+                                    Console.WriteLine($"[Right Label OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[RightLabel Match Score] {matchScore:0.0}%");
+
+                                }
+                                isRightLabelReady = true;
+                            }
+                        }
+
+                        if (isPNReady && isFCCIDReady && isCMMACReady && isWANMACReady &&
+                            isMTAMACReady && isNETWORKReady && isPasswordReady &&
+                            isLeftLabelReady && isRightLabelReady)
+                        {
+                            isOCRReady = true;
+                        }
+                        else
+                        {
+                            CC.WriteCoilMemory(NGCoil, true);
+                            string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                            AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                            AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                LabelResult.Text = "NG";
+                                LabelResult.ForeColor = Color.Red;
+                            }));
+                            Thread.Sleep(200);
+                            CC.WriteCoilMemory(NGCoil, false);
+                            if (CC.ErrorCode == 1)
+                            {
+                                AppendLogText(CC.ErrorString, Color.Red);
+                                CC.ErrorCode = 0;
+                            }
+                            SaveImageByResult(SourcePicture.Image, false);
+                            UpdateCounter(false);
+                        }
+
+                        CheckReady();
+                    }
+                    catch (Exception ex)
+                    {
+                        CC.WriteCoilMemory(NGCoil, true);
+                        string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                        AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                        AppendLogText("Error ocured" + ex.Message, Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            LabelResult.Text = "NG";
+                            LabelResult.ForeColor = Color.Red;
+                        }));
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(NGCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, false);
+                        UpdateCounter(false);
+                    }
+                }
+            }
+            else if (SelectModel == 2)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    ResetBoxCoordinates();
+
+                    try
+                    {
+                        bool isPNReady = false;
+                        bool isFCCIDReady = false;
+                        bool isINPUTReady = false;
+                        bool isSNReady = false;
+                        bool isCMMACReady = false;
+                        bool isMTAMACReady = false;
+                        bool isMADEReady = false;
+                        bool isREGULATIONReady = false;
+                        bool isNETWORKReady = false;
+                        bool isPasswordReady = false;
+                        bool isRightLabelReady = false;
+
+                        PN_TextBox.Text = "";
+                        FCCID_TextBox.Text = "";
+                        NETWORKNAME_TextBox.Text = "";
+                        PASSWORD_TextBox.Text = "";
+
+                        GVL.OCR_PN = "";
+                        GVL.OCR_FCCID = "";
+                        GVL.OCR_NetworkName = "";
+                        GVL.OCR_LastFourNetworkName = "";
+                        GVL.OCR_Password = "";
+                        GVL.OCR_SN = "";
+
+                        string ImagePath = openFileDialog.FileName;
+                        Bitmap imageBitmap = new Bitmap(ImagePath);
+
+                        // ROTATION
+                        if (ImageRotation == 90)
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                        else if (ImageRotation == 180)
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                        else if (ImageRotation == 270)
+                            imageBitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+
+                        SourcePicture.Image?.Dispose();
+                        SourcePicture.Image = new Bitmap(imageBitmap);
+                        SourcePicture.Refresh();
+
+                        const int INPUT_SIZE = 320;
+                        const float CONF_TH = 0.5f;
+                        const float NMS_TH = 0.45f;
+
+                        var inputTensor = BitmapToTensor(imageBitmap, INPUT_SIZE, INPUT_SIZE);
+
+                        var results = _session.Run(new[]
+                        {
+                NamedOnnxValue.CreateFromTensor(_inputName, inputTensor)
+            });
+
+                        var output = results.First().AsTensor<float>();
+                        var dims = output.Dimensions.ToArray();
+
+                        int rows = dims[1];
+                        int cols = dims[2];
+
+                        float scaleX = (float)imageBitmap.Width / INPUT_SIZE;
+                        float scaleY = (float)imageBitmap.Height / INPUT_SIZE;
+
+                        var candidates = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                        for (int i = 0; i < cols; i++)
+                        {
+                            float maxScore = 0;
+                            int classId = 0;
+
+                            for (int c = 4; c < rows; c++)
+                            {
+                                if (output[0, c, i] > maxScore)
+                                {
+                                    maxScore = output[0, c, i];
+                                    classId = c - 4;
+                                }
+                            }
+
+                            if (maxScore > CONF_TH)
+                            {
+                                float cx = output[0, 0, i] * scaleX;
+                                float cy = output[0, 1, i] * scaleY;
+                                float w = output[0, 2, i] * scaleX;
+                                float h = output[0, 3, i] * scaleY;
+
+                                int x = (int)(cx - w / 2);
+                                int y = (int)(cy - h / 2);
+
+                                candidates.Add((new OpenCvSharp.Rect(x, y, (int)w, (int)h), maxScore, classId));
+                            }
+                        }
+
+                        // NMS
+                        var sorted = candidates.OrderByDescending(c => c.Score).ToList();
+                        var finalResults = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+                        while (sorted.Count > 0)
+                        {
+                            var current = sorted[0];
+                            finalResults.Add(current);
+                            sorted.RemoveAt(0);
+
+                            for (int i = sorted.Count - 1; i >= 0; i--)
+                            {
+                                if (CalculateIoU(current.Box, sorted[i].Box) > NMS_TH)
+                                    sorted.RemoveAt(i);
+                            }
+                        }
+
+                        // FILL GVL
+                        foreach (var res in finalResults)
+                        {
+                            string label = GetLabelName(res.ClassId);
+
+                            switch (label)
+                            {
+                                case "PN":
+                                    GVL.StartXPN = res.Box.X;
+                                    GVL.StartYPN = res.Box.Y;
+                                    GVL.WidthPN = res.Box.Width;
+                                    GVL.HeightPN = res.Box.Height;
+                                    break;
+
+                                case "FCCID":
+                                    GVL.StartXFCCID = res.Box.X;
+                                    GVL.StartYFCCID = res.Box.Y;
+                                    GVL.WidthFCCID = res.Box.Width;
+                                    GVL.HeightFCCID = res.Box.Height;
+                                    break;
+
+                                case "INPUT":
+                                    GVL.StartXINPUT = res.Box.X;
+                                    GVL.StartYINPUT = res.Box.Y;
+                                    GVL.WidthINPUT = res.Box.Width;
+                                    GVL.HeightINPUT = res.Box.Height;
+                                    break;
+
+                                case "BARCODE":
+                                    GVL.StartXBARCODE = res.Box.X;
+                                    GVL.StartYBARCODE = res.Box.Y;
+                                    GVL.WidthBARCODE = res.Box.Width;
+                                    GVL.HeightBARCODE = res.Box.Height;
+                                    break;
+
+                                case "SN":
+                                    GVL.StartXSN = res.Box.X;
+                                    GVL.StartYSN = res.Box.Y;
+                                    GVL.WidthSN = res.Box.Width;
+                                    GVL.HeightSN = res.Box.Height;
+                                    break;
+
+                                case "MAC":
+                                    GVL.StartXMAC = res.Box.X;
+                                    GVL.StartYMAC = res.Box.Y;
+                                    GVL.WidthMAC = res.Box.Width;
+                                    GVL.HeightMAC = res.Box.Height;
+                                    break;
+
+                                case "MADE":
+                                    GVL.StartXMADE = res.Box.X;
+                                    GVL.StartYMADE = res.Box.Y;
+                                    GVL.WidthMADE = res.Box.Width;
+                                    GVL.HeightMADE = res.Box.Height;
+                                    break;
+
+                                case "REGULATION":
+                                    GVL.StartXREGULATION = res.Box.X;
+                                    GVL.StartYREGULATION = res.Box.Y;
+                                    GVL.WidthREGULATION = res.Box.Width;
+                                    GVL.HeightREGULATION = res.Box.Height;
+                                    break;
+
+                                case "SSID":
+                                    GVL.StartXSSID = res.Box.X;
+                                    GVL.StartYSSID = res.Box.Y;
+                                    GVL.WidthSSID = res.Box.Width;
+                                    GVL.HeightSSID = res.Box.Height;
+                                    break;
+
+                                case "PASSWORD":
+                                    GVL.StartXPASSWORD = res.Box.X;
+                                    GVL.StartYPASSWORD = res.Box.Y;
+                                    GVL.WidthPASSWORD = res.Box.Width;
+                                    GVL.HeightPASSWORD = res.Box.Height;
+                                    break;
+
+                                case "QR":
+                                    GVL.StartXQR = res.Box.X;
+                                    GVL.StartYQR = res.Box.Y;
+                                    GVL.WidthQR = res.Box.Width;
+                                    GVL.HeightQR = res.Box.Height;
+                                    break;
+
+                                case "RIGHTSIDE":
+                                    GVL.StartXRIGHTSIDE = res.Box.X;
+                                    GVL.StartYRIGHTSIDE = res.Box.Y;
+                                    GVL.WidthRIGHTSIDE = res.Box.Width;
+                                    GVL.HeightRIGHTSIDE = res.Box.Height;
+                                    break;
+
+                                case "LOGOAREA":
+                                    GVL.StartXLOGOAREA = res.Box.X;
+                                    GVL.StartYLOGOAREA = res.Box.Y;
+                                    GVL.WidthLOGOAREA = res.Box.Width;
+                                    GVL.HeightLOGOAREA = res.Box.Height;
+                                    GVL.IsLogoDetected = true;
+                                    break;
+                            }
+                        }
+
+                        // CROPPING 
+                        Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
+                        {
+                            { "PN", new Rectangle(GVL.StartXPN, GVL.StartYPN, GVL.WidthPN, GVL.HeightPN) },
+                            { "FCCID", new Rectangle(GVL.StartXFCCID, GVL.StartYFCCID, GVL.WidthFCCID, GVL.HeightFCCID) },
+                            { "INPUT", new Rectangle(GVL.StartXINPUT, GVL.StartYINPUT, GVL.WidthINPUT, GVL.HeightINPUT) },
+                            { "BARCODE", new Rectangle(GVL.StartXBARCODE, GVL.StartYBARCODE, GVL.WidthBARCODE, GVL.HeightBARCODE) },
+                            { "SN", new Rectangle(GVL.StartXSN, GVL.StartYSN, GVL.WidthSN, GVL.HeightSN) },
+                            { "MAC", new Rectangle(GVL.StartXMAC, GVL.StartYMAC, GVL.WidthMAC, GVL.HeightMAC) },
+                            { "MADE", new Rectangle(GVL.StartXMADE, GVL.StartYMADE, GVL.WidthMADE, GVL.HeightMADE) },
+                            { "REGULATION", new Rectangle(GVL.StartXREGULATION, GVL.StartYREGULATION, GVL.WidthREGULATION, GVL.HeightREGULATION) },
+                            { "SSID", new Rectangle(GVL.StartXSSID, GVL.StartYSSID, GVL.WidthSSID, GVL.HeightSSID) },
+                            { "PASSWORD", new Rectangle(GVL.StartXPASSWORD, GVL.StartYPASSWORD, GVL.WidthPASSWORD, GVL.HeightPASSWORD) },
+                            { "QR", new Rectangle(GVL.StartXQR, GVL.StartYQR, GVL.WidthQR, GVL.HeightQR) },
+                            { "RIGHTSIDE", new Rectangle(GVL.StartXRIGHTSIDE, GVL.StartYRIGHTSIDE, GVL.WidthRIGHTSIDE, GVL.HeightRIGHTSIDE) }
+                        };
+
+                        richTextBox_Barcode.Clear();
+
+                        foreach (var region in regions)
+                        {
+                            if (region.Value.Width <= 0 || region.Value.Height <= 0)
+                                continue;
+
+                            Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
+
+                            if (region.Key == "QR")
+                            {
+                                QRPicture.Image = cropped;
+                                ProcessBarcodeZbar(cropped);
+                                richTextBox_Barcode.AppendText($"{QRResult}\n");
+                            }
+                            else if (region.Key == "BARCODE")
+                            {
+                                BarcodePicture.Image = cropped;
+                                ProcessBarcodeZbar(cropped);
+                                richTextBox_Barcode.AppendText($"{BarcodeResult}\n");
+                            }
+                            else if (region.Key == "PN")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7);
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                                ModelPicture.Image = enhancedBitmap;
+
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+
+                                string merged = result
+                                    .Replace("\n", "")
+                                    .Replace("\r", "")
+                                    .Replace(" ", "")
+                                    .ToUpperInvariant();
+
+                                Console.WriteLine($"[MERGED OCR]: {merged}");
+
+                                // CLEANING
+                                string cleanLine = merged
+                                    .Replace(".", "")
+                                    .Replace("49B1", "4981")
+                                    .Replace("498I", "4981")
+                                    .Replace("49BI", "4981")
+                                    .Replace("4881", "4981")
+                                    .Replace("4B81", "4981")
+                                    .Replace("4BB1", "4981")
+                                    .Replace("48BI", "4981")
+                                    .Replace("4BBI", "4981")
+                                    .Replace("C0X", "COX");
+
+                                Console.WriteLine($"[CLEANED]: {cleanLine}");
+
+                                // REGEX 
+                                var match = Regex.Match(cleanLine, @"[A-Z]{3}[0-9]{4}[A-Z]{3}");
+
+                                if (match.Success)
+                                {
+                                    string value = match.Value;
+
+                                    GVL.OCR_PN = value;
+                                    PN_TextBox.Text = value;
+
+                                    Console.WriteLine($"[PN DETECTED] {value}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("[PN FAILED]");
+                                }
+
+                                isPNReady = true;
+                            }
+                            else if (region.Key == "FCCID")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+                                FCCIDPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+                                string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                foreach (var line in lines)
+                                {
+                                    string cleanLine = line.Trim()
+                                        .Replace(".", "")
+                                        .Replace("49B1", "4981")
+                                        .Replace("498I", "4981")
+                                        .Replace("49BI", "4981")
+                                        .Replace("4881", "4981")
+                                        .Replace("4B81", "4981")
+                                        .Replace("4BB1", "4981")
+                                        .Replace("48BI", "4981")
+                                        .Replace("4BBI", "4981")
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+                                    var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
+                                    if (match.Success && match.Groups.Count > 1)
+                                    {
+                                        string value = match.Groups[1].Value;
+                                        GVL.OCR_FCCID = value;
+                                        FCCID_TextBox.Text = value;
+                                        break;
+                                    }
+                                }
+                                isFCCIDReady = true;
+                            }
+                            else if (region.Key == "SN")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 7);
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                                 SNPicture.Image = enhancedBitmap;
+
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+                                string[] lines = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                foreach (var line in lines)
+                                {
+                                    string cleanLine = line.Trim()
+                                        .Replace(" ", "")
+                                        .Replace("b", "6")
+                                        .Replace("S", "5")
+                                        .Replace("g", "9")
+                                        .Replace("B", "8")
+                                        .Replace("A", "4")
+                                        .Replace(".", "")
+                                        .Replace("-", "")
+                                        .Replace("O", "0")   
+                                        .Replace("I", "1")   
+                                        .Replace("L", "1")
+                                        .ToUpperInvariant();
+
+                                    string digitsOnly = Regex.Replace(cleanLine, @"\D", "");
+
+                                    var match = Regex.Match(digitsOnly, @"\d{18}");
+
+                                    if (match.Success)
+                                    {
+                                        string value = match.Value;
+
+                                        GVL.OCR_SN = value;
+                                        OCRSN_TextBox.Text = value;
+
+                                        Console.WriteLine($"[SN DETECTED] {value}");
+
+                                        break;
+                                    }
+                                }
+
+                                isSNReady = true;
+                            }
+                            else if (region.Key == "MAC")
+                            {
+                                MACPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+
+                                var validLines = result
+                                    .Replace("O", "0").Replace("I", "1")
+                                    .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(l => l.Trim().ToUpperInvariant())
+                                    .Where(l => !string.IsNullOrWhiteSpace(l) && l != ",")
+                                    .ToList();
+
+                                var matches = validLines
+                                    .SelectMany(l => Regex.Matches(l, @"[A-Z0-9]{12}").Cast<Match>())
+                                    .Select(m => m.Value)
+                                    .ToList();
+
+                                if (matches.Count >= 2)
+                                {
+                                    GVL.OCR_CM_MAC = matches[0];
+                                    GVL.OCR_MTA_MAC = matches[1];
+
+                                    OCRCMMAC_TextBox.Text = matches[0];
+                                    OCRMTAMAC_TextBox.Text = matches[1];
+                                }
+                                else
+                                {
+                                    if (matches.Count > 0) { GVL.OCR_CM_MAC = matches[0]; OCRCMMAC_TextBox.Text = matches[0]; } else { OCRCMMAC_TextBox.Text = "Not Found"; }
+                                    if (matches.Count > 1) { GVL.OCR_MTA_MAC = matches[1]; OCRMTAMAC_TextBox.Text = matches[1]; } else { OCRMTAMAC_TextBox.Text = "Not Found"; }
+                                }
+
+                                isCMMACReady = true;
+                                isMTAMACReady = true;
+                            }
+                            else if (region.Key == "SSID")
+                            {
+                                SSIDPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+                                string value = ExtractValueFromOcrResult(result, "SSID");
+
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    NETWORKNAME_TextBox.Text = value;
+                                    GVL.OCR_NetworkName = value;
+
+                                    string[] parts = value.Split('-');
+                                    if (parts.Length > 1)
+                                    {
+                                        string lastPart = parts.Last().Trim();
+                                        if (lastPart.Length >= 4)
+                                            GVL.OCR_LastFourNetworkName = lastPart.Substring(lastPart.Length - 4);
+                                        else
+                                            GVL.OCR_LastFourNetworkName = lastPart;
+                                    }
+                                }
+                                isNETWORKReady = true;
+                            }
+                            else if (region.Key == "PASSWORD")
+                            {
+                                PasswordPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+                                string value = ExtractValueFromOcrResult(result, "WORD");
+
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    PASSWORD_TextBox.Text = value;
+                                    GVL.OCR_Password = value;
+                                }
+                                isPasswordReady = true;
+                            }
+                            else if (region.Key == "INPUT")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                                InputPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "INPUT120V46A";
+
+                                    if (result.StartsWith("nput") || result.StartsWith("1nput") || result.StartsWith("lnput"))
+                                    {
+                                        result = result
+                                            .Replace("nput", "Input")
+                                            .Replace("1nput", "Input")
+                                            .Replace("lnput", "Input");
+                                    }
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                        .Replace("\r", " ")
+                                        .Replace(":", " ")
+                                        .Replace(".", " ")
+                                        .Replace("-", " ")
+                                        .Replace("B", "6")
+                                        .Replace("8", "6")
+                                        .Replace("OV", "0V")
+                                        .Replace("  ", " ")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    InputScore = matchScore;
+
+                                    Console.WriteLine($"[INPUT OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[INPUT Match Score] {matchScore:0.0}%");
+
+                                }
+                                isINPUTReady = true;
+                            }
+                            else if (region.Key == "MADE")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                                //FCCRegulationPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "MADEININDONESIA";
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                        .Replace("\r", " ")
+                                        .Replace(":", " ")
+                                        .Replace(".", " ")
+                                        .Replace("-", " ")
+                                        .Replace("0", "o")
+                                        .Replace("c", "e")
+                                        .Replace("l", "I")
+                                        .Replace("Mode", "Made")
+                                        .Replace("Mado", "Made")
+                                        .Replace("Modo", "Made")
+                                        .Replace("Mede", "Made")
+                                        .Replace("Mada", "Made")
+                                        .Replace("II", "I")
+                                        .Replace("Ind0nesia", "Indonesia")
+                                        .Replace("lndonesia", "Indonesia")
+                                        .Replace("lnd0nesia", "Indonesia")
+                                        .Replace("  ", " ")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    MadeScore = matchScore;
+
+                                    Console.WriteLine($"[MADE OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[MADE Match Score] {matchScore:0.0}%");
+
+                                }
+                                isMADEReady = true;
+                            }
+                            else if (region.Key == "REGULATION")
+                            {
+                                Mat matCropped = BitmapConverter.ToMat(cropped);
+                                Mat enhanced = new Mat();
+                                matCropped.ConvertTo(enhanced, MatType.CV_8UC3, alpha: 1.5, beta: 10); // alpha=kontras, beta=brightness
+
+                                Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
+
+                                FCCRegulationPicture.Image = enhancedBitmap;
+                                string result = ProcessOCR_Paddle(enhancedBitmap);
+
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "FCCREGULATIONSRESTRICTTOINDOORUSEONLY";
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                        .Replace("\r", " ")
+                                        .Replace(":", " ")
+                                        .Replace(".", " ")
+                                        .Replace("-", " ")
+                                        .Replace("rogulatlons", "regulations")
+                                        .Replace("roguiatlons", "regulations")
+                                        .Replace("roguiations", "regulations")
+                                        .Replace("regulatlons", "regulations")
+                                        .Replace("reguiatlons", "regulations")
+                                        .Replace("reguiations", "regulations")
+                                        .Replace("restrlct", "restrict")
+                                        .Replace("resfrlct", "restrict")
+                                        .Replace("resfrict", "restrict")
+                                        .Replace("inaoor", "indoor")
+                                        .Replace("Inaoor", "indoor")
+                                        .Replace("lnaoor", "indoor")
+                                        .Replace("lndoor", "indoor")
+                                        .Replace("1ndoor", "indoor")
+                                        .Replace("1naoor", "indoor")
+                                        .Replace("onty", "only")
+                                        .Replace("onfy", "only")
+                                        .Replace("oniy", "only")
+                                        .Replace("onjy", "only")
+                                        .Replace("onIy", "only")
+                                        .Replace("  ", " ")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    LeftLabelScore = matchScore;
+
+                                    Console.WriteLine($"[Regulation OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[Regulation Match Score] {matchScore:0.0}%");
+
+                                }
+                                isREGULATIONReady = true;
+                            }
+                            else if (region.Key == "RIGHTSIDE")
+                            {
+                                RightPicture.Image = cropped;
+                                string result = ProcessOCR_Paddle(cropped);
+
+                                if (!string.IsNullOrWhiteSpace(result))
+                                {
+                                    string referenceText = "PROPERTYOFCOXNOTFORRESALEREMOVINGTHISSTICKERORTAMPERINGWITHTHISEQUIPMENTISAVIOLATIONOFFEDERALANDSTATELAW";
+
+                                    string cleanedResult = result
+                                        .Replace("\n", " ")
+                                    .Replace("\r", " ")
+                                    .Replace("  ", " ")
+                                    .Replace(".", " ")
+                                    .Replace("OE", "OF")
+                                    .Replace("0", "O")
+                                    .Replace("4", "A")
+                                    .Replace("l", "I")
+                                    .Replace("WTH", "WITH")
+                                    .Replace("WlTH", "WITH")
+                                        .Trim()
+                                        .ToUpperInvariant()
+                                        .Replace(" ", "");
+
+                                    string cleanedReference = referenceText
+                                        .Replace(" ", "")
+                                        .ToUpperInvariant();
+
+                                    double matchScore = CalculateSimilarity(cleanedResult, cleanedReference);
+                                    RightLabelScore = matchScore;
+
+                                    Console.WriteLine($"[Right Label OCR]: {result}");
+                                    Console.WriteLine($"[Cleaned]: {cleanedResult}");
+                                    Console.WriteLine($"[RightLabel Match Score] {matchScore:0.0}%");
+
+                                }
+                                isRightLabelReady = true;
+                            }
+                        }
+                        if (isPNReady && isFCCIDReady && isINPUTReady && isCMMACReady && isSNReady &&
+                            isMTAMACReady && isMADEReady && isREGULATIONReady && isNETWORKReady && isPasswordReady && isRightLabelReady)
+                        {
+                            isOCRReady = true;
+                        }
+                        else
+                        {
+                            CC.WriteCoilMemory(NGCoil, true);
+                            string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                            AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                            AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+                            this.Invoke(new Action(() =>
+                            {
+                                LabelResult.Text = "NG";
+                                LabelResult.ForeColor = Color.Red;
+                            }));
+                            Thread.Sleep(200);
+                            CC.WriteCoilMemory(NGCoil, false);
+                            if (CC.ErrorCode == 1)
+                            {
+                                AppendLogText(CC.ErrorString, Color.Red);
+                                CC.ErrorCode = 0;
+                            }
+                            SaveImageByResult(SourcePicture.Image, false);
+                            UpdateCounter(false);
+                        }
+
+                        CheckReady();
+                    }
+                    catch (Exception ex)
+                    {
+                        CC.WriteCoilMemory(NGCoil, true);
+                        string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+                        AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
+                        AppendLogText("Error ocured" + ex.Message, Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            LabelResult.Text = "NG";
+                            LabelResult.ForeColor = Color.Red;
+                        }));
+                        Thread.Sleep(200);
+                        CC.WriteCoilMemory(NGCoil, false);
+                        if (CC.ErrorCode == 1)
+                        {
+                            AppendLogText(CC.ErrorString, Color.Red);
+                            CC.ErrorCode = 0;
+                        }
+                        SaveImageByResult(SourcePicture.Image, false);
+                        UpdateCounter(false);
+                    }
+                }
+            }
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             ThreadRunning = false;
@@ -2545,10 +4803,71 @@ namespace XB8_Program
             if (ComboBox_Model.SelectedIndex == 0)
             {
                 SelectModel = 1;
+                InitOnnx("COM");
+
+                richTextBox_Barcode.Clear();
+                SN_TextBox.Clear();
+                QRCMMAC_TextBox.Clear();
+                QRMTAMAC_TextBox.Clear();
+                QRWANMAC_TextBox.Clear();
+                QRCOMCAST_TextBox.Clear();
+                QRTECHNICOLOR_TextBox.Clear();
+                PN_TextBox.Clear();
+                FCCID_TextBox.Clear();
+                OCRCMMAC_TextBox.Clear();
+                OCRMTAMAC_TextBox.Clear();
+                OCRWANMAC_TextBox.Clear();
+                OCRSN_TextBox.Clear();
+                NETWORKNAME_TextBox.Clear();
+                PASSWORD_TextBox.Clear();
+
+                SourcePicture.Image = null;
+                ModelPicture.Image = null;
+                FCCIDPicture.Image = null;
+                SSIDPicture.Image = null;
+                PasswordPicture.Image = null;
+                FCCRegulationPicture.Image = null;
+                SNPicture.Image = null;
+                InputPicture.Image = null;
+                QRPicture.Image = null;
+                BarcodePicture.Image = null;
+                MACPicture.Image = null;
+                RightPicture.Image = null;
+
             }
             else if (ComboBox_Model.SelectedIndex == 1)
             {
                 SelectModel = 2;
+                InitOnnx("COX");
+
+                richTextBox_Barcode.Clear();
+                SN_TextBox.Clear();
+                QRCMMAC_TextBox.Clear();
+                QRMTAMAC_TextBox.Clear();
+                QRWANMAC_TextBox.Clear();
+                QRCOMCAST_TextBox.Clear();
+                QRTECHNICOLOR_TextBox.Clear();
+                PN_TextBox.Clear();
+                FCCID_TextBox.Clear();
+                OCRCMMAC_TextBox.Clear();
+                OCRMTAMAC_TextBox.Clear();
+                OCRWANMAC_TextBox.Clear();
+                OCRSN_TextBox.Clear();
+                NETWORKNAME_TextBox.Clear();
+                PASSWORD_TextBox.Clear();
+
+                SourcePicture.Image = null;
+                ModelPicture.Image = null;
+                FCCIDPicture.Image = null;
+                SSIDPicture.Image = null;
+                PasswordPicture.Image = null;
+                FCCRegulationPicture.Image = null;
+                SNPicture.Image = null;
+                InputPicture.Image = null;
+                QRPicture.Image = null;
+                BarcodePicture.Image = null;
+                MACPicture.Image = null;
+                RightPicture.Image = null;
             }
         }
 

@@ -72,7 +72,7 @@
             this.label19 = new System.Windows.Forms.Label();
             this.label18 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
-            this.LeftPicture = new System.Windows.Forms.PictureBox();
+            this.FCCRegulationPicture = new System.Windows.Forms.PictureBox();
             this.RightPicture = new System.Windows.Forms.PictureBox();
             this.ComboBox_Rotation = new System.Windows.Forms.ComboBox();
             this.label13 = new System.Windows.Forms.Label();
@@ -90,8 +90,6 @@
             this.BarcodePicture = new System.Windows.Forms.PictureBox();
             this.label28 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label_yieldrate = new System.Windows.Forms.Label();
             this.label35 = new System.Windows.Forms.Label();
@@ -101,6 +99,14 @@
             this.label31 = new System.Windows.Forms.Label();
             this.label_total = new System.Windows.Forms.Label();
             this.label29 = new System.Windows.Forms.Label();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.SNPicture = new System.Windows.Forms.PictureBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.label33 = new System.Windows.Forms.Label();
+            this.OCRSN_TextBox = new System.Windows.Forms.TextBox();
+            this.label34 = new System.Windows.Forms.Label();
+            this.InputPicture = new System.Windows.Forms.PictureBox();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ModelPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MACPicture)).BeginInit();
@@ -109,15 +115,17 @@
             ((System.ComponentModel.ISupportInitialize)(this.FCCIDPicture)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.LeftPicture)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.FCCRegulationPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.RightPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SourcePicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.QRPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BarcodePicture)).BeginInit();
             this.panel1.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
-            this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.InputPicture)).BeginInit();
             this.SuspendLayout();
             // 
             // label16
@@ -127,7 +135,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label16.AutoSize = true;
             this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.Location = new System.Drawing.Point(18, 257);
+            this.label16.Location = new System.Drawing.Point(18, 273);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(82, 13);
             this.label16.TabIndex = 29;
@@ -139,7 +147,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.NETWORKNAME_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NETWORKNAME_TextBox.Location = new System.Drawing.Point(183, 215);
+            this.NETWORKNAME_TextBox.Location = new System.Drawing.Point(183, 231);
             this.NETWORKNAME_TextBox.Name = "NETWORKNAME_TextBox";
             this.NETWORKNAME_TextBox.Size = new System.Drawing.Size(290, 22);
             this.NETWORKNAME_TextBox.TabIndex = 28;
@@ -151,7 +159,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.OCRMTAMAC_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.OCRMTAMAC_TextBox.Location = new System.Drawing.Point(129, 171);
+            this.OCRMTAMAC_TextBox.Location = new System.Drawing.Point(129, 159);
             this.OCRMTAMAC_TextBox.Name = "OCRMTAMAC_TextBox";
             this.OCRMTAMAC_TextBox.Size = new System.Drawing.Size(344, 22);
             this.OCRMTAMAC_TextBox.TabIndex = 26;
@@ -163,7 +171,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.OCRWANMAC_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.OCRWANMAC_TextBox.Location = new System.Drawing.Point(129, 134);
+            this.OCRWANMAC_TextBox.Location = new System.Drawing.Point(129, 122);
             this.OCRWANMAC_TextBox.Name = "OCRWANMAC_TextBox";
             this.OCRWANMAC_TextBox.Size = new System.Drawing.Size(344, 22);
             this.OCRWANMAC_TextBox.TabIndex = 25;
@@ -319,7 +327,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label17.AutoSize = true;
             this.label17.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.Location = new System.Drawing.Point(18, 176);
+            this.label17.Location = new System.Drawing.Point(18, 164);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(67, 13);
             this.label17.TabIndex = 23;
@@ -332,7 +340,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label15.AutoSize = true;
             this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.Location = new System.Drawing.Point(18, 220);
+            this.label15.Location = new System.Drawing.Point(18, 236);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(113, 13);
             this.label15.TabIndex = 27;
@@ -344,7 +352,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FCCID_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FCCID_TextBox.Location = new System.Drawing.Point(129, 70);
+            this.FCCID_TextBox.Location = new System.Drawing.Point(129, 58);
             this.FCCID_TextBox.Name = "FCCID_TextBox";
             this.FCCID_TextBox.Size = new System.Drawing.Size(344, 22);
             this.FCCID_TextBox.TabIndex = 17;
@@ -357,7 +365,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(18, 75);
+            this.label7.Location = new System.Drawing.Point(18, 63);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(51, 13);
             this.label7.TabIndex = 11;
@@ -370,7 +378,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(18, 42);
+            this.label6.Location = new System.Drawing.Point(18, 30);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(28, 13);
             this.label6.TabIndex = 10;
@@ -383,7 +391,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PN_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PN_TextBox.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.PN_TextBox.Location = new System.Drawing.Point(129, 37);
+            this.PN_TextBox.Location = new System.Drawing.Point(129, 25);
             this.PN_TextBox.Name = "PN_TextBox";
             this.PN_TextBox.Size = new System.Drawing.Size(344, 22);
             this.PN_TextBox.TabIndex = 5;
@@ -440,7 +448,7 @@
             // MACPicture
             // 
             this.MACPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MACPicture.Location = new System.Drawing.Point(12, 484);
+            this.MACPicture.Location = new System.Drawing.Point(253, 618);
             this.MACPicture.Name = "MACPicture";
             this.MACPicture.Size = new System.Drawing.Size(216, 77);
             this.MACPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -450,7 +458,7 @@
             // PasswordPicture
             // 
             this.PasswordPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.PasswordPicture.Location = new System.Drawing.Point(12, 639);
+            this.PasswordPicture.Location = new System.Drawing.Point(12, 551);
             this.PasswordPicture.Name = "PasswordPicture";
             this.PasswordPicture.Size = new System.Drawing.Size(216, 32);
             this.PasswordPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -461,7 +469,7 @@
             // 
             this.label25.AutoSize = true;
             this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label25.Location = new System.Drawing.Point(12, 621);
+            this.label25.Location = new System.Drawing.Point(12, 533);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(117, 15);
             this.label25.TabIndex = 88;
@@ -470,7 +478,7 @@
             // SSIDPicture
             // 
             this.SSIDPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.SSIDPicture.Location = new System.Drawing.Point(12, 582);
+            this.SSIDPicture.Location = new System.Drawing.Point(12, 494);
             this.SSIDPicture.Name = "SSIDPicture";
             this.SSIDPicture.Size = new System.Drawing.Size(216, 36);
             this.SSIDPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -481,7 +489,7 @@
             // 
             this.label24.AutoSize = true;
             this.label24.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label24.Location = new System.Drawing.Point(12, 564);
+            this.label24.Location = new System.Drawing.Point(12, 476);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(87, 15);
             this.label24.TabIndex = 86;
@@ -494,7 +502,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.OCRCMMAC_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OCRCMMAC_TextBox.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.OCRCMMAC_TextBox.Location = new System.Drawing.Point(129, 101);
+            this.OCRCMMAC_TextBox.Location = new System.Drawing.Point(129, 89);
             this.OCRCMMAC_TextBox.Name = "OCRCMMAC_TextBox";
             this.OCRCMMAC_TextBox.Size = new System.Drawing.Size(344, 22);
             this.OCRCMMAC_TextBox.TabIndex = 24;
@@ -575,6 +583,8 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.label33);
+            this.groupBox1.Controls.Add(this.OCRSN_TextBox);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.PASSWORD_TextBox);
             this.groupBox1.Controls.Add(this.label2);
@@ -604,7 +614,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(18, 106);
+            this.label1.Location = new System.Drawing.Point(18, 94);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(59, 13);
             this.label1.TabIndex = 21;
@@ -616,7 +626,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PASSWORD_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PASSWORD_TextBox.Location = new System.Drawing.Point(183, 252);
+            this.PASSWORD_TextBox.Location = new System.Drawing.Point(183, 268);
             this.PASSWORD_TextBox.Name = "PASSWORD_TextBox";
             this.PASSWORD_TextBox.Size = new System.Drawing.Size(290, 22);
             this.PASSWORD_TextBox.TabIndex = 30;
@@ -629,7 +639,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(18, 139);
+            this.label2.Location = new System.Drawing.Point(18, 127);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(70, 13);
             this.label2.TabIndex = 22;
@@ -665,24 +675,24 @@
             this.label14.TabIndex = 79;
             this.label14.Text = "Image Rotation:";
             // 
-            // LeftPicture
+            // FCCRegulationPicture
             // 
-            this.LeftPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.LeftPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.LeftPicture.Location = new System.Drawing.Point(12, 697);
-            this.LeftPicture.Name = "LeftPicture";
-            this.LeftPicture.Size = new System.Drawing.Size(216, 156);
-            this.LeftPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.LeftPicture.TabIndex = 73;
-            this.LeftPicture.TabStop = false;
+            this.FCCRegulationPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.FCCRegulationPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.FCCRegulationPicture.Location = new System.Drawing.Point(12, 635);
+            this.FCCRegulationPicture.Name = "FCCRegulationPicture";
+            this.FCCRegulationPicture.Size = new System.Drawing.Size(216, 66);
+            this.FCCRegulationPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.FCCRegulationPicture.TabIndex = 73;
+            this.FCCRegulationPicture.TabStop = false;
             // 
             // RightPicture
             // 
             this.RightPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.RightPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.RightPicture.Location = new System.Drawing.Point(254, 697);
+            this.RightPicture.Location = new System.Drawing.Point(253, 719);
             this.RightPicture.Name = "RightPicture";
-            this.RightPicture.Size = new System.Drawing.Size(239, 156);
+            this.RightPicture.Size = new System.Drawing.Size(239, 107);
             this.RightPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.RightPicture.TabIndex = 72;
             this.RightPicture.TabStop = false;
@@ -729,17 +739,17 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(12, 680);
+            this.label12.Location = new System.Drawing.Point(12, 599);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(108, 15);
+            this.label12.Size = new System.Drawing.Size(153, 30);
             this.label12.TabIndex = 75;
-            this.label12.Text = "Left Side Label:";
+            this.label12.Text = "Left Side Label (COM)/\r\nFCC Regulation (COX):";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(251, 679);
+            this.label5.Location = new System.Drawing.Point(250, 701);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(118, 15);
             this.label5.TabIndex = 74;
@@ -764,7 +774,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(12, 466);
+            this.label4.Location = new System.Drawing.Point(253, 600);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(84, 15);
             this.label4.TabIndex = 70;
@@ -794,7 +804,7 @@
             // 
             this.richTextBox_Log.Location = new System.Drawing.Point(7, 37);
             this.richTextBox_Log.Name = "richTextBox_Log";
-            this.richTextBox_Log.Size = new System.Drawing.Size(241, 619);
+            this.richTextBox_Log.Size = new System.Drawing.Size(239, 619);
             this.richTextBox_Log.TabIndex = 94;
             this.richTextBox_Log.Text = "";
             // 
@@ -814,7 +824,7 @@
             this.QRPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.QRPicture.Location = new System.Drawing.Point(254, 376);
             this.QRPicture.Name = "QRPicture";
-            this.QRPicture.Size = new System.Drawing.Size(239, 185);
+            this.QRPicture.Size = new System.Drawing.Size(239, 135);
             this.QRPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.QRPicture.TabIndex = 96;
             this.QRPicture.TabStop = false;
@@ -833,9 +843,9 @@
             // 
             this.BarcodePicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BarcodePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.BarcodePicture.Location = new System.Drawing.Point(254, 582);
+            this.BarcodePicture.Location = new System.Drawing.Point(253, 534);
             this.BarcodePicture.Name = "BarcodePicture";
-            this.BarcodePicture.Size = new System.Drawing.Size(239, 89);
+            this.BarcodePicture.Size = new System.Drawing.Size(239, 54);
             this.BarcodePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.BarcodePicture.TabIndex = 98;
             this.BarcodePicture.TabStop = false;
@@ -844,7 +854,7 @@
             // 
             this.label28.AutoSize = true;
             this.label28.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label28.Location = new System.Drawing.Point(251, 564);
+            this.label28.Location = new System.Drawing.Point(250, 516);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(60, 15);
             this.label28.TabIndex = 99;
@@ -861,53 +871,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(251, 862);
             this.panel1.TabIndex = 100;
-            // 
-            // panel2
-            // 
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Controls.Add(this.SourcePicture);
-            this.panel2.Controls.Add(this.label28);
-            this.panel2.Controls.Add(this.label4);
-            this.panel2.Controls.Add(this.BarcodePicture);
-            this.panel2.Controls.Add(this.label5);
-            this.panel2.Controls.Add(this.QRPicture);
-            this.panel2.Controls.Add(this.label12);
-            this.panel2.Controls.Add(this.label27);
-            this.panel2.Controls.Add(this.RightPicture);
-            this.panel2.Controls.Add(this.LeftPicture);
-            this.panel2.Controls.Add(this.ModelPicture);
-            this.panel2.Controls.Add(this.FCCIDPicture);
-            this.panel2.Controls.Add(this.label22);
-            this.panel2.Controls.Add(this.label23);
-            this.panel2.Controls.Add(this.MACPicture);
-            this.panel2.Controls.Add(this.label24);
-            this.panel2.Controls.Add(this.PasswordPicture);
-            this.panel2.Controls.Add(this.SSIDPicture);
-            this.panel2.Controls.Add(this.label25);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel2.Location = new System.Drawing.Point(0, 0);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(499, 862);
-            this.panel2.TabIndex = 101;
-            // 
-            // panel3
-            // 
-            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Controls.Add(this.label13);
-            this.panel3.Controls.Add(this.File_btn);
-            this.panel3.Controls.Add(this.ComboBox_Model);
-            this.panel3.Controls.Add(this.groupBox2);
-            this.panel3.Controls.Add(this.ComboBox_Rotation);
-            this.panel3.Controls.Add(this.groupBox3);
-            this.panel3.Controls.Add(this.groupBox1);
-            this.panel3.Controls.Add(this.label14);
-            this.panel3.Controls.Add(this.label19);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(499, 0);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(533, 862);
-            this.panel3.TabIndex = 102;
             // 
             // groupBox4
             // 
@@ -1043,6 +1006,124 @@
             this.label29.Text = "TOTAL:";
             this.label29.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // panel2
+            // 
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.label34);
+            this.panel2.Controls.Add(this.InputPicture);
+            this.panel2.Controls.Add(this.label30);
+            this.panel2.Controls.Add(this.SNPicture);
+            this.panel2.Controls.Add(this.label3);
+            this.panel2.Controls.Add(this.SourcePicture);
+            this.panel2.Controls.Add(this.label28);
+            this.panel2.Controls.Add(this.label4);
+            this.panel2.Controls.Add(this.BarcodePicture);
+            this.panel2.Controls.Add(this.label5);
+            this.panel2.Controls.Add(this.QRPicture);
+            this.panel2.Controls.Add(this.label12);
+            this.panel2.Controls.Add(this.label27);
+            this.panel2.Controls.Add(this.RightPicture);
+            this.panel2.Controls.Add(this.FCCRegulationPicture);
+            this.panel2.Controls.Add(this.ModelPicture);
+            this.panel2.Controls.Add(this.FCCIDPicture);
+            this.panel2.Controls.Add(this.label22);
+            this.panel2.Controls.Add(this.label23);
+            this.panel2.Controls.Add(this.MACPicture);
+            this.panel2.Controls.Add(this.label24);
+            this.panel2.Controls.Add(this.PasswordPicture);
+            this.panel2.Controls.Add(this.SSIDPicture);
+            this.panel2.Controls.Add(this.label25);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
+            this.panel2.Location = new System.Drawing.Point(0, 0);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(499, 862);
+            this.panel2.TabIndex = 101;
+            // 
+            // panel3
+            // 
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.label13);
+            this.panel3.Controls.Add(this.File_btn);
+            this.panel3.Controls.Add(this.ComboBox_Model);
+            this.panel3.Controls.Add(this.groupBox2);
+            this.panel3.Controls.Add(this.ComboBox_Rotation);
+            this.panel3.Controls.Add(this.groupBox3);
+            this.panel3.Controls.Add(this.groupBox1);
+            this.panel3.Controls.Add(this.label14);
+            this.panel3.Controls.Add(this.label19);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(499, 0);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(533, 862);
+            this.panel3.TabIndex = 102;
+            // 
+            // SNPicture
+            // 
+            this.SNPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.SNPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.SNPicture.Location = new System.Drawing.Point(12, 722);
+            this.SNPicture.Name = "SNPicture";
+            this.SNPicture.Size = new System.Drawing.Size(216, 39);
+            this.SNPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.SNPicture.TabIndex = 100;
+            this.SNPicture.TabStop = false;
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label30.Location = new System.Drawing.Point(9, 704);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(72, 15);
+            this.label30.TabIndex = 101;
+            this.label30.Text = "SN (COX):";
+            // 
+            // label33
+            // 
+            this.label33.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label33.AutoSize = true;
+            this.label33.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label33.Location = new System.Drawing.Point(18, 199);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(28, 13);
+            this.label33.TabIndex = 31;
+            this.label33.Text = "SN:";
+            // 
+            // OCRSN_TextBox
+            // 
+            this.OCRSN_TextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.OCRSN_TextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OCRSN_TextBox.Location = new System.Drawing.Point(129, 194);
+            this.OCRSN_TextBox.Name = "OCRSN_TextBox";
+            this.OCRSN_TextBox.Size = new System.Drawing.Size(344, 22);
+            this.OCRSN_TextBox.TabIndex = 32;
+            this.OCRSN_TextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label34.Location = new System.Drawing.Point(9, 769);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(112, 15);
+            this.label34.TabIndex = 103;
+            this.label34.Text = "Input Text (COX)";
+            // 
+            // InputPicture
+            // 
+            this.InputPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.InputPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.InputPicture.Location = new System.Drawing.Point(12, 787);
+            this.InputPicture.Name = "InputPicture";
+            this.InputPicture.Size = new System.Drawing.Size(216, 39);
+            this.InputPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.InputPicture.TabIndex = 102;
+            this.InputPicture.TabStop = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1069,18 +1150,20 @@
             this.groupBox3.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.LeftPicture)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.FCCRegulationPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.RightPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.SourcePicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.QRPicture)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BarcodePicture)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.InputPicture)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1131,7 +1214,7 @@
         public System.Windows.Forms.Label label19;
         public System.Windows.Forms.Label label18;
         public System.Windows.Forms.Label label14;
-        public System.Windows.Forms.PictureBox LeftPicture;
+        public System.Windows.Forms.PictureBox FCCRegulationPicture;
         public System.Windows.Forms.PictureBox RightPicture;
         public System.Windows.Forms.ComboBox ComboBox_Rotation;
         public System.Windows.Forms.Label label13;
@@ -1160,6 +1243,12 @@
         public System.Windows.Forms.Label label31;
         public System.Windows.Forms.Label label_total;
         public System.Windows.Forms.Label label29;
+        public System.Windows.Forms.Label label30;
+        public System.Windows.Forms.PictureBox SNPicture;
+        public System.Windows.Forms.Label label33;
+        public System.Windows.Forms.TextBox OCRSN_TextBox;
+        public System.Windows.Forms.Label label34;
+        public System.Windows.Forms.PictureBox InputPicture;
     }
 }
 
