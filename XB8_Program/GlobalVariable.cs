@@ -9,8 +9,11 @@ namespace XB8_Program
 {
     public class GlobalVariable
     {
+        public bool SaveCropped = bool.Parse(ConfigurationManager.AppSettings["SaveCropped"]);
         public string RunningModel = ConfigurationManager.AppSettings["RunningModel"];
         public string WatcherDir = ConfigurationManager.AppSettings["WatcherDir"];
+        public int MinimumScoreCOM = int.Parse(ConfigurationManager.AppSettings["MinimumScoreCOM"]);
+        public int MinimumScoreCOX = int.Parse(ConfigurationManager.AppSettings["MinimumScoreCOX"]);
 
         public int StartXPN, StartYPN, WidthPN, HeightPN;
         public int StartXMAC, StartYMAC, WidthMAC, HeightMAC;

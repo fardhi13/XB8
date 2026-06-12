@@ -32,6 +32,15 @@ namespace XB8_Program
         private InferenceSession _session;
         private string _inputName;
 
+        private InferenceSession _regionSession;
+        private string _regionInputName;
+
+        private InferenceSession _clsLeftSession;
+        private InferenceSession _clsRightSession;
+
+        private string _clsLeftInput;
+        private string _clsRightInput;
+
         private FileSystemWatcher TheWatcher;
         private PaddleOcrAll PaddleOcrEngine;
         private TesseractEngine Tesseract_Engine;
@@ -78,6 +87,8 @@ namespace XB8_Program
             InitializeComponent();
             SFIS.SFIS_LogINOUT(1);
             InitOnnx(GVL.RunningModel);
+            InitRegionOnnx(GVL.RunningModel);
+            //InitClassificationModel();
             InitPaddleOcr();
             InitTesseract();
             InitWatcher();
@@ -119,6 +130,66 @@ namespace XB8_Program
 
             Console.WriteLine($"[MODEL SWITCHED] {_Model}");
         }
+
+        private void InitRegionOnnx(string modelName)
+        {
+            string model = modelName.ToUpperInvariant();
+
+            string modelPath = "";
+
+            if (model == "COM")
+            {
+                modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "COM_REGION.onnx");
+            }
+            else if (model == "COX")
+            {
+                modelPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "COX_REGION.onnx");
+            }
+            else
+            {
+                MessageBox.Show("Region model not valid (COM/COX)");
+                return;
+            }
+
+            if (!File.Exists(modelPath))
+            {
+                MessageBox.Show($"Region model not found:\n{modelPath}");
+                return;
+            }
+
+            // dispose old
+            _regionSession?.Dispose();
+
+            // load new
+            _regionSession = new InferenceSession(modelPath);
+            _regionInputName = _regionSession.InputMetadata.Keys.First();
+
+            Console.WriteLine($"[REGION MODEL SWITCHED] {model}");
+        }
+
+        //private void InitClassificationModel()
+        //{
+        //    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+        //    string leftPath = Path.Combine(baseDir, "LEFT_REGION.onnx");
+        //    string rightPath = Path.Combine(baseDir, "RIGHT_REGION.onnx");
+
+        //    if (File.Exists(leftPath))
+        //    {
+        //        _clsLeftSession?.Dispose();
+        //        _clsLeftSession = new InferenceSession(leftPath);
+        //        _clsLeftInput = _clsLeftSession.InputMetadata.Keys.First();
+        //    }
+
+        //    if (File.Exists(rightPath))
+        //    {
+        //        _clsRightSession?.Dispose();
+        //        _clsRightSession = new InferenceSession(rightPath);
+        //        _clsRightInput = _clsRightSession.InputMetadata.Keys.First();
+        //    }
+
+        //    Console.WriteLine("[CLASSIFICATION MODEL LOADED]");
+        //}
 
         private void InitPaddleOcr()
         {
@@ -350,6 +421,179 @@ namespace XB8_Program
             }
             
             await MQTT.InitializeAsync();
+        }
+
+        private string GetRegionName(int classId)
+        {
+            string[] names =
+            {
+        "LEFT_REGION",
+        "RIGHT_REGION",
+        "CENTER_REGION",
+        "LOWER_REGION"
+    };
+
+            if (classId >= 0 && classId < names.Length)
+                return names[classId];
+
+            return "UNKNOWN";
+        }
+
+        private List<(OpenCvSharp.Rect Box, float Score, int ClassId)> RunRegionDetection(Bitmap bmp)
+        {
+            const int INPUT_SIZE = 640;
+            const float CONF_TH = 0.5f;
+            const float NMS_TH = 0.45f;
+
+            var inputTensor = BitmapToTensor(bmp, INPUT_SIZE, INPUT_SIZE);
+
+            var results = _regionSession.Run(new[]
+            {
+        NamedOnnxValue.CreateFromTensor(_regionInputName, inputTensor)
+    });
+
+            var output = results.First().AsTensor<float>();
+            var dims = output.Dimensions.ToArray();
+
+            int rows = dims[1];
+            int cols = dims[2];
+
+            float scaleX = (float)bmp.Width / INPUT_SIZE;
+            float scaleY = (float)bmp.Height / INPUT_SIZE;
+
+            var candidates = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+            for (int i = 0; i < cols; i++)
+            {
+                float maxScore = 0;
+                int classId = 0;
+
+                for (int c = 4; c < rows; c++)
+                {
+                    if (output[0, c, i] > maxScore)
+                    {
+                        maxScore = output[0, c, i];
+                        classId = c - 4;
+                    }
+                }
+
+                if (maxScore > CONF_TH)
+                {
+                    float cx = output[0, 0, i] * scaleX;
+                    float cy = output[0, 1, i] * scaleY;
+                    float w = output[0, 2, i] * scaleX;
+                    float h = output[0, 3, i] * scaleY;
+
+                    int x = (int)(cx - w / 2);
+                    int y = (int)(cy - h / 2);
+
+                    candidates.Add((new OpenCvSharp.Rect(x, y, (int)w, (int)h), maxScore, classId));
+                }
+            }
+
+            // NMS
+            var sorted = candidates.OrderByDescending(c => c.Score).ToList();
+            var finalResults = new List<(OpenCvSharp.Rect Box, float Score, int ClassId)>();
+
+            while (sorted.Count > 0)
+            {
+                var current = sorted[0];
+                finalResults.Add(current);
+                sorted.RemoveAt(0);
+
+                for (int i = sorted.Count - 1; i >= 0; i--)
+                {
+                    if (CalculateIoU(current.Box, sorted[i].Box) > NMS_TH)
+                        sorted.RemoveAt(i);
+                }
+            }
+
+            return finalResults;
+        }
+
+        //    private string RunClassification(Bitmap bmp, InferenceSession session, string inputName)
+        //    {
+        //        if (session == null)
+        //            return "UNKNOWN";
+
+        //        const int INPUT_SIZE = 640;
+
+        //        var tensor = BitmapToTensor_Classification(bmp, INPUT_SIZE);
+
+        //        var result = session.Run(new[]
+        //        {
+        //    NamedOnnxValue.CreateFromTensor(inputName, tensor)
+        //});
+
+        //        var output = result.First().AsEnumerable<float>().ToArray();
+
+        //        int idx = Array.IndexOf(output, output.Max());
+
+        //        string[] labels = { "NG", "PASS" }; // sesuaikan kalau kebalik
+        //        Console.WriteLine($"RAW OUTPUT: {string.Join(", ", output.ToArray())}");
+        //        return labels[idx];
+        //    }
+
+        //    private void SaveClassificationImage(Bitmap img, string region, string result, string originalPath)
+        //    {
+        //        try
+        //        {
+        //            string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "classification");
+
+        //            string folder = Path.Combine(baseDir, region, result);
+
+        //            if (!Directory.Exists(folder))
+        //                Directory.CreateDirectory(folder);
+
+        //            string fileName = Path.GetFileNameWithoutExtension(originalPath);
+
+        //            string savePath = Path.Combine(folder, $"{fileName}_{region}.jpg");
+
+        //            if (File.Exists(savePath))
+        //                File.Delete(savePath);
+
+        //            img.Save(savePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+        //            Console.WriteLine($"[CLS SAVE] {region} => {result}");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine("[CLS SAVE ERROR] " + ex.Message);
+        //        }
+        //    }
+
+        private void SaveToClassificationInput(Bitmap cropped, string regionName, string originalPath)
+        {
+            try
+            {
+                string baseDir = @"D:\CLS_INPUT";
+
+                string folder = Path.Combine(baseDir, regionName.Replace("_REGION", ""));
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                string fileName = Path.GetFileNameWithoutExtension(originalPath);
+
+                // biar unik (hindari overwrite)
+                string uniqueName = $"{fileName}_{DateTime.Now:HHmmssfff}.jpg";
+
+                string tempPath = Path.Combine(folder, uniqueName + ".tmp");
+                string finalPath = Path.Combine(folder, uniqueName);
+
+                using (Bitmap bmp = new Bitmap(cropped))
+                {
+                    bmp.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                }
+
+                File.Move(tempPath, finalPath);
+
+                Console.WriteLine($"[SEND CLS] {regionName} => {finalPath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[CLS INPUT ERROR] " + ex.Message);
+            }
         }
 
         private void UpdateCounter(bool isPass)
@@ -812,7 +1056,7 @@ namespace XB8_Program
                 }
 
                 //Left Label
-                if (LeftLabelScore >= 99)
+                if (LeftLabelScore >= GVL.MinimumScoreCOM)
                 {
                     isPassLeftLabel = true;
                     AppendLogText($"Left Label {LeftLabelScore:0.0}% matched", Color.Green);
@@ -826,11 +1070,11 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Left Label {LeftLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Left Label {LeftLabelScore:0.0}% , must be more than {GVL.MinimumScoreCOM}%, check again and retry!", Color.Red);
                 }
 
                 //Right Label
-                if (RightLabelScore >= 99)
+                if (RightLabelScore >= GVL.MinimumScoreCOM)
                 {
                     isPassRightLabel = true;
                     AppendLogText($"Right Label {RightLabelScore:0.0}% matched", Color.Green);
@@ -844,7 +1088,7 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% , must be more than {GVL.MinimumScoreCOM}%, check again and retry!", Color.Red);
                 }
 
                 // LOGOAREA CHECK
@@ -947,10 +1191,11 @@ namespace XB8_Program
                             Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
 
                             isPassSN = true;
-                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid", Color.Green);
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid (Tesseract fallback)", Color.Orange);
                             this.Invoke(new Action(() =>
                             {
-                                SN_TextBox.ForeColor = Color.Black;
+                                SN_TextBox.ForeColor = Color.DarkOrange;
+                                SN_TextBox.Text = fallbackSN;
                             }));
                             GVL.Barcode_SN = "";
                         }
@@ -993,12 +1238,34 @@ namespace XB8_Program
                             Console.WriteLine(DATA[2] + "\n" + DATA[3] + "\n" + DATA[4]);
 
                             isPassSN = true;
-                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid", Color.Green);
+                            AppendLogText($"[{GVL.Barcode_SN}] - SN is valid (Fuzzymatch fallback)", Color.Orange);
                             this.Invoke(new Action(() =>
                             {
-                                SN_TextBox.ForeColor = Color.Black;
+                                SN_TextBox.ForeColor = Color.DarkOrange;
+                                SN_TextBox.Text = GVL.Barcode_SN;
                             }));
                             GVL.Barcode_SN = "";
+                        }
+                    }
+                    else
+                    {
+                        isPassSN = false;
+
+                        string SFISResponse = SFIS.StringSNReader;
+                        string[] DATA = SFISResponse.Split(new char[] { '\x7f' });
+                        GVL.StartResult = DATA[0];
+                        GVL.TypeResult = DATA[1];
+                        GVL.Model = "NOT FOUND";
+                        GVL.SSID = "NOT FOUND";
+                        GVL.Password = "NOT FOUND";
+                        AppendLogText($"[{GVL.Barcode_SN}] - SN is not valid, check again and retry!", Color.Red);
+                        this.Invoke(new Action(() =>
+                        {
+                            SN_TextBox.ForeColor = Color.Red;
+                        }));
+                        if (!isPassSN && string.IsNullOrEmpty(failReason))
+                        {
+                            failReason = "SNFail";
                         }
                     }
                 }
@@ -1152,7 +1419,7 @@ namespace XB8_Program
                 }
 
                 //INPUT text
-                if (InputScore >= 99)
+                if (InputScore >= GVL.MinimumScoreCOX)
                 {
                     isPassInput = true;
                     AppendLogText($"Text Input {InputScore:0.0}% matched", Color.Green);
@@ -1166,7 +1433,7 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Text Input {InputScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Text Input {InputScore:0.0}% matched, must be more than {GVL.MinimumScoreCOX}%, check again and retry!", Color.Red);
                 }
 
                 #region mac
@@ -1259,7 +1526,7 @@ namespace XB8_Program
                 isPassMTA = true;
 
                 //MADE text
-                if (MadeScore >= 99)
+                if (MadeScore >= GVL.MinimumScoreCOX)
                 {
                     isPassMade = true;
                     AppendLogText($"Text Made In {MadeScore:0.0}% matched", Color.Green);
@@ -1273,17 +1540,18 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Text Made In {MadeScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Text Made In {MadeScore:0.0}% , must be more than {GVL.MinimumScoreCOX}%, check again and retry!", Color.Red);
                 }
 
                 //Regulation text
-                if (LeftLabelScore >= 99)
+                if (LeftLabelScore >= GVL.MinimumScoreCOX)
                 {
                     isPassRegulation = true;
                     AppendLogText($"Text Regulation {LeftLabelScore:0.0}% matched", Color.Green);
                 }
                 else
                 {
+
                     isPassRegulation = false;
 
                     if (string.IsNullOrEmpty(failReason))
@@ -1291,7 +1559,7 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Text Regulation {LeftLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Text Regulation {LeftLabelScore:0.0}% , must be more than {GVL.MinimumScoreCOX}%, check again and retry!", Color.Red);
                 }
 
 
@@ -1418,7 +1686,7 @@ namespace XB8_Program
                 }
 
                 //Right Label
-                if (RightLabelScore >= 99)
+                if (RightLabelScore >= GVL.MinimumScoreCOX)
                 {
                     isPassRightLabel = true;
                     AppendLogText($"Right Label {RightLabelScore:0.0}% matched", Color.Green);
@@ -1432,7 +1700,7 @@ namespace XB8_Program
                         failReason = "Text_Not_Match";
                     }
 
-                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than 98%, check again and retry!", Color.Red);
+                    AppendLogText($"Right Label {RightLabelScore:0.0}% matched, must be more than {GVL.MinimumScoreCOX}%, check again and retry!", Color.Red);
                 }
 
                 // LOGOAREA CHECK
@@ -1608,6 +1876,37 @@ namespace XB8_Program
             catch (Exception ex)
             {
                 AppendLogText($"[SAVE ERROR]: {ex.Message}", Color.Red);
+            }
+        }
+
+        private void SaveCroppedImage(Bitmap cropped, string regionName, string originalPath)
+        {
+            try
+            {
+                string baseDir = @"D:\Cropped";
+
+                // COM / COX
+                string modelFolder = Path.Combine(baseDir, _Model);
+
+                string folderPath = Path.Combine(modelFolder, regionName);
+
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string fileName = Path.GetFileNameWithoutExtension(originalPath);
+
+                string savePath = Path.Combine(folderPath, $"{fileName}_{regionName}.jpg");
+
+                if (File.Exists(savePath))
+                    File.Delete(savePath);
+
+                cropped.Save(savePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                Console.WriteLine($"[SAVE CROPPED] {savePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Save error: " + ex.Message);
             }
         }
 
@@ -2047,6 +2346,7 @@ namespace XB8_Program
 
             // Resize input YOLO
             Cv2.Resize(mat, mat, new OpenCvSharp.Size(inputW, inputH));
+            //mat = Letterbox(mat, inputW);
 
             // BGR RGB
             Cv2.CvtColor(mat, mat, ColorConversionCodes.BGR2RGB);
@@ -2064,6 +2364,34 @@ namespace XB8_Program
 
             return new DenseTensor<float>(data, new[] { 1, 3, inputH, inputW });
         }
+
+        //private DenseTensor<float> BitmapToTensor_Classification(Bitmap bmp, int inputSize)
+        //{
+        //    Mat mat = BitmapConverter.ToMat(bmp);
+
+        //    // 
+        //    Cv2.Resize(mat, mat, new OpenCvSharp.Size(inputSize, inputSize));
+
+        //    Cv2.CvtColor(mat, mat, ColorConversionCodes.BGR2RGB);
+
+        //    float[] data = new float[1 * 3 * inputSize * inputSize];
+        //    int channelSize = inputSize * inputSize;
+
+        //    for (int y = 0; y < inputSize; y++)
+        //    {
+        //        for (int x = 0; x < inputSize; x++)
+        //        {
+        //            Vec3b pixel = mat.At<Vec3b>(y, x);
+
+        //            data[0 * channelSize + y * inputSize + x] = pixel.Item0 / 255.0f; // R
+        //            data[1 * channelSize + y * inputSize + x] = pixel.Item1 / 255.0f; // G
+        //            data[2 * channelSize + y * inputSize + x] = pixel.Item2 / 255.0f; // B
+        //        }
+        //    }
+
+        //    return new DenseTensor<float>(data, new[] { 1, 3, inputSize, inputSize });
+        //}
+        
 
         private float CalculateIoU(OpenCvSharp.Rect b1, OpenCvSharp.Rect b2)
         {
@@ -2134,6 +2462,7 @@ namespace XB8_Program
 
         private void ProcessImage(string fullPath)
         {
+            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
             ResetBoxCoordinates();
 
             if (SelectModel == 1)
@@ -2350,6 +2679,56 @@ namespace XB8_Program
 
                     richTextBox_Barcode.Clear();
 
+                    if (GVL.SaveCropped == true)
+                    {
+                        if (_regionSession != null)
+                        {
+                            var detections = RunRegionDetection(imageBitmap);
+
+                            // ambil BEST per region (biar tidak double)
+                            var bestRegions = detections
+                                .GroupBy(d => GetRegionName(d.ClassId))
+                                .Select(g => g.OrderByDescending(x => x.Score).First());
+
+                            foreach (var res in bestRegions)
+                            {
+                                string regionName = GetRegionName(res.ClassId);
+
+                                if (regionName == "UNKNOWN")
+                                    continue;
+
+                                Rectangle rect = new Rectangle(res.Box.X, res.Box.Y, res.Box.Width, res.Box.Height);
+
+                                if (rect.Width <= 0 || rect.Height <= 0)
+                                    continue;
+
+                                Bitmap cropped = CropImage(new Bitmap(imageBitmap), rect);
+
+                                //// LEFT REGION
+                                //if (regionName == "LEFT_REGION")
+                                //{
+                                //    string result = RunClassification(cropped, _clsLeftSession, _clsLeftInput);
+
+                                //    SaveClassificationImage(cropped, "LEFT_REGION", result, fullPath);
+                                //}
+
+                                //// RIGHT REGION
+                                //else if (regionName == "RIGHT_REGION")
+                                //{
+                                //    string result = RunClassification(cropped, _clsRightSession, _clsRightInput);
+
+                                //    SaveClassificationImage(cropped, "RIGHT_REGION", result, fullPath);
+                                //}
+
+                                // CENTER & LOWER
+                                 if (regionName == "CENTER_REGION" || regionName == "LOWER_REGION")
+                                {
+                                    SaveCroppedImage(cropped, regionName, fullPath);
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var region in regions)
                     {
                         if (region.Value.Width <= 0 || region.Value.Height <= 0)
@@ -2458,6 +2837,7 @@ namespace XB8_Program
                             {
                                 string cleanLine = line.Trim()
                                     .Replace(".", "")
+                                    .Replace("E", "F")
                                     .Replace("49B1", "4981")
                                     .Replace("498I", "4981")
                                     .Replace("49BI", "4981")
@@ -2466,6 +2846,7 @@ namespace XB8_Program
                                     .Replace("4BB1", "4981")
                                     .Replace("48BI", "4981")
                                     .Replace("4BBI", "4981")
+                                    .Replace("JID", "ID")
                                     .Replace(" ", "")
                                     .ToUpperInvariant();
                                 var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
@@ -2636,7 +3017,32 @@ namespace XB8_Program
                         CC.WriteCoilMemory(NGCoil, true);
                         string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                         AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                        AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+
+                        List<string> failedParts = new List<string>();
+
+                        if (!isPNReady) failedParts.Add("PN");
+                        if (!isFCCIDReady) failedParts.Add("FCCID");
+                        if (!isCMMACReady) failedParts.Add("CM MAC");
+                        if (!isWANMACReady) failedParts.Add("WAN MAC");
+                        if (!isMTAMACReady) failedParts.Add("MTA MAC");
+                        if (!isNETWORKReady) failedParts.Add("SSID");
+                        if (!isPasswordReady) failedParts.Add("PASSWORD");
+                        if (!isLeftLabelReady) failedParts.Add("LEFT LABEL");
+                        if (!isRightLabelReady) failedParts.Add("RIGHT LABEL");
+
+                        string failMessage;
+
+                        if (failedParts.Count > 0)
+                        {
+                            failMessage = "Missing detection: " + string.Join(", ", failedParts);
+                        }
+                        else
+                        {
+                            failMessage = "Unknown detection error";
+                        }
+
+                        AppendLogText(failMessage, Color.Red);
+
                         this.Invoke(new Action(() =>
                         {
                             LabelResult.Text = "NG";
@@ -2908,6 +3314,45 @@ namespace XB8_Program
 
                     richTextBox_Barcode.Clear();
 
+                    if (GVL.SaveCropped == true)
+                    {
+                        if (_regionSession != null)
+                        {
+                            var detections = RunRegionDetection(imageBitmap);
+
+                            var bestRegions = detections
+                                .GroupBy(d => GetRegionName(d.ClassId))
+                                .Select(g => g.OrderByDescending(x => x.Score).First());
+
+                            foreach (var res in bestRegions)
+                            {
+                                string regionName = GetRegionName(res.ClassId);
+
+                                if (regionName == "UNKNOWN")
+                                    continue;
+
+                                Rectangle rect = new Rectangle(res.Box.X, res.Box.Y, res.Box.Width, res.Box.Height);
+
+                                if (rect.Width <= 0 || rect.Height <= 0)
+                                    continue;
+
+                                Bitmap cropped = CropImage(new Bitmap(imageBitmap), rect);
+
+                                // LEFT & RIGHT PYTHON CLS
+                                if (regionName == "LEFT_REGION" || regionName == "RIGHT_REGION")
+                                {
+                                    SaveToClassificationInput(cropped, regionName, fullPath);
+                                }
+
+                                // CENTER & LOWER DATASET
+                                else if (regionName == "CENTER_REGION" || regionName == "LOWER_REGION")
+                                {
+                                    SaveCroppedImage(cropped, regionName, fullPath);
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var region in regions)
                     {
                         if (region.Value.Width <= 0 || region.Value.Height <= 0)
@@ -2993,8 +3438,16 @@ namespace XB8_Program
 
                             foreach (var line in lines)
                             {
-                                string cleanLine = line.Trim()
+                                string merged = line.Trim()
+                                    .Replace(" ", "")
                                     .Replace(".", "")
+                                    .Replace("-", "")
+                                    .ToUpperInvariant();
+
+                                // 
+                                string cleanLine = merged
+                                    .Replace("E", "F")
+                                    .Replace("JID", "ID")
                                     .Replace("49B1", "4981")
                                     .Replace("498I", "4981")
                                     .Replace("49BI", "4981")
@@ -3002,15 +3455,20 @@ namespace XB8_Program
                                     .Replace("4B81", "4981")
                                     .Replace("4BB1", "4981")
                                     .Replace("48BI", "4981")
-                                    .Replace("4BBI", "4981")
-                                    .Replace(" ", "")
-                                    .ToUpperInvariant();
-                                var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
-                                if (match.Success && match.Groups.Count > 1)
+                                    .Replace("4BBI", "4981");
+
+                                Console.WriteLine($"[FCC CLEAN] {cleanLine}");
+
+                                var match = Regex.Match(cleanLine, @"G954981X");
+
+                                if (match.Success)
                                 {
-                                    string value = match.Groups[1].Value;
+                                    string value = match.Value;
+
                                     GVL.OCR_FCCID = value;
                                     FCCID_TextBox.Text = value;
+
+                                    Console.WriteLine($"[FCCID DETECTED] {value}");
                                     break;
                                 }
                             }
@@ -3195,7 +3653,7 @@ namespace XB8_Program
 
                             Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
 
-                            //FCCRegulationPicture.Image = enhancedBitmap;
+                            MadePicture.Image = enhancedBitmap;
                             string result = ProcessOCR_Paddle(enhancedBitmap);
 
 
@@ -3217,7 +3675,13 @@ namespace XB8_Program
                                     .Replace("Modo", "Made")
                                     .Replace("Mede", "Made")
                                     .Replace("Mada", "Made")
+                                    .Replace("Mads", "Made")
+                                    .Replace("sis", "sia")
+                                    .Replace("aia", "sia")
+                                    .Replace("no", "ne")
                                     .Replace("II", "I")
+                                    .Replace("J", "I")
+                                    .Replace("JI", "I")
                                     .Replace("Ind0nesia", "Indonesia")
                                     .Replace("lndonesia", "Indonesia")
                                     .Replace("lnd0nesia", "Indonesia")
@@ -3262,6 +3726,7 @@ namespace XB8_Program
                                     .Replace(":", " ")
                                     .Replace(".", " ")
                                     .Replace("-", " ")
+                                    .Replace("reaulations", "regulations")
                                     .Replace("rogulatlons", "regulations")
                                     .Replace("roguiatlons", "regulations")
                                     .Replace("roguiations", "regulations")
@@ -3321,6 +3786,7 @@ namespace XB8_Program
                                 .Replace("l", "I")
                                 .Replace("WTH", "WITH")
                                 .Replace("WlTH", "WITH")
+                                .Replace("WMTH", "WITH")
                                     .Trim()
                                     .ToUpperInvariant()
                                     .Replace(" ", "");
@@ -3350,7 +3816,34 @@ namespace XB8_Program
                         CC.WriteCoilMemory(NGCoil, true);
                         string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                         AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                        AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+
+                        List<string> failedParts = new List<string>();
+
+                        if (!isPNReady) failedParts.Add("PN");
+                        if (!isFCCIDReady) failedParts.Add("FCCID");
+                        if (!isCMMACReady) failedParts.Add("CM MAC");
+                        if (!isMTAMACReady) failedParts.Add("MTA MAC");
+                        if (!isNETWORKReady) failedParts.Add("SSID");
+                        if (!isPasswordReady) failedParts.Add("PASSWORD");
+                        if (!isRightLabelReady) failedParts.Add("RIGHT LABEL");
+                        if (!isREGULATIONReady) failedParts.Add("Regulation Text");
+                        if (!isMADEReady) failedParts.Add("Made In Text");
+                        if (!isINPUTReady) failedParts.Add("INPUT Text");
+                        if (!isSNReady) failedParts.Add("SN");
+
+                        string failMessage;
+
+                        if (failedParts.Count > 0)
+                        {
+                            failMessage = "Missing detection: " + string.Join(", ", failedParts);
+                        }
+                        else
+                        {
+                            failMessage = "Unknown detection error";
+                        }
+
+                        AppendLogText(failMessage, Color.Red);
+
                         this.Invoke(new Action(() =>
                         {
                             LabelResult.Text = "NG";
@@ -3391,6 +3884,9 @@ namespace XB8_Program
                     UpdateCounter(false);
                 }
             }
+
+            sw.Stop();
+            Console.WriteLine($"TOTAL TIME: {sw.ElapsedMilliseconds} ms\n");
         }
 
         private void richTextBox_Barcode_TextChanged(object sender, EventArgs e)
@@ -3738,12 +4234,63 @@ namespace XB8_Program
 
                         richTextBox_Barcode.Clear();
 
+                        if (GVL.SaveCropped == true)
+                        {
+                            if (_regionSession != null)
+                            {
+                                var detections = RunRegionDetection(imageBitmap);
+
+                                // ambil BEST per region (biar tidak double)
+                                var bestRegions = detections
+                                    .GroupBy(d => GetRegionName(d.ClassId))
+                                    .Select(g => g.OrderByDescending(x => x.Score).First());
+
+                                foreach (var res in bestRegions)
+                                {
+                                    string regionName = GetRegionName(res.ClassId);
+
+                                    if (regionName == "UNKNOWN")
+                                        continue;
+
+                                    Rectangle rect = new Rectangle(res.Box.X, res.Box.Y, res.Box.Width, res.Box.Height);
+
+                                    if (rect.Width <= 0 || rect.Height <= 0)
+                                        continue;
+
+                                    Bitmap cropped = CropImage(new Bitmap(imageBitmap), rect);
+
+                                    //// LEFT REGION
+                                    //if (regionName == "LEFT_REGION")
+                                    //{
+                                    //    string result = RunClassification(cropped, _clsLeftSession, _clsLeftInput);
+
+                                    //    SaveClassificationImage(cropped, "LEFT_REGION", result, ImagePath);
+                                    //}
+
+                                    //// RIGHT REGION
+                                    //else if (regionName == "RIGHT_REGION")
+                                    //{
+                                    //    string result = RunClassification(cropped, _clsRightSession, _clsRightInput);
+
+                                    //    SaveClassificationImage(cropped, "RIGHT_REGION", result, ImagePath);
+                                    //}
+
+                                    // CENTER & LOWER
+                                    if (regionName == "CENTER_REGION" || regionName == "LOWER_REGION")
+                                    {
+                                        SaveCroppedImage(cropped, regionName, ImagePath);
+                                    }
+                                }
+                            }
+                        }
+
                         foreach (var region in regions)
                         {
                             if (region.Value.Width <= 0 || region.Value.Height <= 0)
                                 continue;
 
                             Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
+                            
 
                             if (region.Key == "QR")
                             {
@@ -3847,6 +4394,7 @@ namespace XB8_Program
                                 {
                                     string cleanLine = line.Trim()
                                         .Replace(".", "")
+                                        .Replace("E", "F")
                                         .Replace("49B1", "4981")
                                         .Replace("498I", "4981")
                                         .Replace("49BI", "4981")
@@ -3855,6 +4403,7 @@ namespace XB8_Program
                                         .Replace("4BB1", "4981")
                                         .Replace("48BI", "4981")
                                         .Replace("4BBI", "4981")
+                                        .Replace("JID", "ID")
                                         .Replace(" ", "")
                                         .ToUpperInvariant();
                                     var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
@@ -4024,7 +4573,32 @@ namespace XB8_Program
                             CC.WriteCoilMemory(NGCoil, true);
                             string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                             AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                            AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+
+                            List<string> failedParts = new List<string>();
+
+                            if (!isPNReady) failedParts.Add("PN");
+                            if (!isFCCIDReady) failedParts.Add("FCCID");
+                            if (!isCMMACReady) failedParts.Add("CM MAC");
+                            if (!isWANMACReady) failedParts.Add("WAN MAC");
+                            if (!isMTAMACReady) failedParts.Add("MTA MAC");
+                            if (!isNETWORKReady) failedParts.Add("SSID");
+                            if (!isPasswordReady) failedParts.Add("PASSWORD");
+                            if (!isLeftLabelReady) failedParts.Add("LEFT LABEL");
+                            if (!isRightLabelReady) failedParts.Add("RIGHT LABEL");
+
+                            string failMessage;
+
+                            if (failedParts.Count > 0)
+                            {
+                                failMessage = "Missing detection: " + string.Join(", ", failedParts);
+                            }
+                            else
+                            {
+                                failMessage = "Unknown detection error";
+                            }
+
+                            AppendLogText(failMessage, Color.Red);
+
                             this.Invoke(new Action(() =>
                             {
                                 LabelResult.Text = "NG";
@@ -4303,12 +4877,52 @@ namespace XB8_Program
 
                         richTextBox_Barcode.Clear();
 
+                        if (GVL.SaveCropped == true)
+                        {
+                            if (_regionSession != null)
+                            {
+                                var detections = RunRegionDetection(imageBitmap);
+
+                                var bestRegions = detections
+                                    .GroupBy(d => GetRegionName(d.ClassId))
+                                    .Select(g => g.OrderByDescending(x => x.Score).First());
+
+                                foreach (var res in bestRegions)
+                                {
+                                    string regionName = GetRegionName(res.ClassId);
+
+                                    if (regionName == "UNKNOWN")
+                                        continue;
+
+                                    Rectangle rect = new Rectangle(res.Box.X, res.Box.Y, res.Box.Width, res.Box.Height);
+
+                                    if (rect.Width <= 0 || rect.Height <= 0)
+                                        continue;
+
+                                    Bitmap cropped = CropImage(new Bitmap(imageBitmap), rect);
+
+                                    // LEFT & RIGHT PYTHON CLS
+                                    if (regionName == "LEFT_REGION" || regionName == "RIGHT_REGION")
+                                    {
+                                        SaveToClassificationInput(cropped, regionName, ImagePath);
+                                    }
+
+                                    // CENTER & LOWER DATASET
+                                    else if (regionName == "CENTER_REGION" || regionName == "LOWER_REGION")
+                                    {
+                                        SaveCroppedImage(cropped, regionName, ImagePath);
+                                    }
+                                }
+                            }
+                        }
+
                         foreach (var region in regions)
                         {
                             if (region.Value.Width <= 0 || region.Value.Height <= 0)
                                 continue;
 
                             Bitmap cropped = CropImage(new Bitmap(imageBitmap), region.Value);
+
 
                             if (region.Key == "QR")
                             {
@@ -4388,8 +5002,16 @@ namespace XB8_Program
 
                                 foreach (var line in lines)
                                 {
-                                    string cleanLine = line.Trim()
+                                    string merged = line.Trim()
+                                        .Replace(" ", "")
                                         .Replace(".", "")
+                                        .Replace("-", "")
+                                        .ToUpperInvariant();
+
+                                    // 
+                                    string cleanLine = merged
+                                        .Replace("E", "F")
+                                        .Replace("JID", "ID")
                                         .Replace("49B1", "4981")
                                         .Replace("498I", "4981")
                                         .Replace("49BI", "4981")
@@ -4397,15 +5019,20 @@ namespace XB8_Program
                                         .Replace("4B81", "4981")
                                         .Replace("4BB1", "4981")
                                         .Replace("48BI", "4981")
-                                        .Replace("4BBI", "4981")
-                                        .Replace(" ", "")
-                                        .ToUpperInvariant();
-                                    var match = Regex.Match(cleanLine, @"FCC[I1Jl][DO0][:]?([A-Z0-9]+)");
-                                    if (match.Success && match.Groups.Count > 1)
+                                        .Replace("4BBI", "4981");
+
+                                    Console.WriteLine($"[FCC CLEAN] {cleanLine}");
+
+                                    var match = Regex.Match(cleanLine, @"G954981X");
+
+                                    if (match.Success)
                                     {
-                                        string value = match.Groups[1].Value;
+                                        string value = match.Value;
+
                                         GVL.OCR_FCCID = value;
                                         FCCID_TextBox.Text = value;
+
+                                        Console.WriteLine($"[FCCID DETECTED] {value}");
                                         break;
                                     }
                                 }
@@ -4590,7 +5217,7 @@ namespace XB8_Program
 
                                 Bitmap enhancedBitmap = BitmapConverter.ToBitmap(enhanced);
 
-                                //FCCRegulationPicture.Image = enhancedBitmap;
+                                MadePicture.Image = enhancedBitmap;
                                 string result = ProcessOCR_Paddle(enhancedBitmap);
 
 
@@ -4612,7 +5239,13 @@ namespace XB8_Program
                                         .Replace("Modo", "Made")
                                         .Replace("Mede", "Made")
                                         .Replace("Mada", "Made")
+                                        .Replace("Mads", "Made")
                                         .Replace("II", "I")
+                                        .Replace("J", "I")
+                                        .Replace("JI", "I")
+                                        .Replace("sis", "sia")
+                                        .Replace("aia", "sia")
+                                        .Replace("no", "ne")
                                         .Replace("Ind0nesia", "Indonesia")
                                         .Replace("lndonesia", "Indonesia")
                                         .Replace("lnd0nesia", "Indonesia")
@@ -4657,6 +5290,7 @@ namespace XB8_Program
                                         .Replace(":", " ")
                                         .Replace(".", " ")
                                         .Replace("-", " ")
+                                        .Replace("reaulations", "regulations")
                                         .Replace("rogulatlons", "regulations")
                                         .Replace("roguiatlons", "regulations")
                                         .Replace("roguiations", "regulations")
@@ -4716,6 +5350,7 @@ namespace XB8_Program
                                     .Replace("l", "I")
                                     .Replace("WTH", "WITH")
                                     .Replace("WlTH", "WITH")
+                                    .Replace("WMTH", "WITH")
                                         .Trim()
                                         .ToUpperInvariant()
                                         .Replace(" ", "");
@@ -4745,7 +5380,34 @@ namespace XB8_Program
                             CC.WriteCoilMemory(NGCoil, true);
                             string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                             AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
-                            AppendLogText("Some target is not detected, please adjust image quality and try again!", Color.Red);
+
+                            List<string> failedParts = new List<string>();
+
+                            if (!isPNReady) failedParts.Add("PN");
+                            if (!isFCCIDReady) failedParts.Add("FCCID");
+                            if (!isCMMACReady) failedParts.Add("CM MAC");
+                            if (!isMTAMACReady) failedParts.Add("MTA MAC");
+                            if (!isNETWORKReady) failedParts.Add("SSID");
+                            if (!isPasswordReady) failedParts.Add("PASSWORD");
+                            if (!isRightLabelReady) failedParts.Add("RIGHT LABEL");
+                            if (!isREGULATIONReady) failedParts.Add("Regulation Text");
+                            if (!isMADEReady) failedParts.Add("Made In Text");
+                            if (!isINPUTReady) failedParts.Add("INPUT Text");
+                            if (!isSNReady) failedParts.Add("SN");
+
+                            string failMessage;
+
+                            if (failedParts.Count > 0)
+                            {
+                                failMessage = "Missing detection: " + string.Join(", ", failedParts);
+                            }
+                            else
+                            {
+                                failMessage = "Unknown detection error";
+                            }
+
+                            AppendLogText(failMessage, Color.Red);
+
                             this.Invoke(new Action(() =>
                             {
                                 LabelResult.Text = "NG";
@@ -4804,6 +5466,7 @@ namespace XB8_Program
             {
                 SelectModel = 1;
                 InitOnnx("COM");
+                InitRegionOnnx("COM");
 
                 richTextBox_Barcode.Clear();
                 SN_TextBox.Clear();
@@ -4833,12 +5496,26 @@ namespace XB8_Program
                 BarcodePicture.Image = null;
                 MACPicture.Image = null;
                 RightPicture.Image = null;
+                MadePicture.Image = null;
+
+                OCRSN_TextBox.Visible = false; label33.Visible = false;
+                SNPicture.Visible = false; label30.Visible = false;
+                InputPicture.Visible = false; label34.Visible = false;
+                MadePicture.Visible = false; label36.Visible = false;
+
+                OCRWANMAC_TextBox.Visible = true; label2.Visible = true;
+                QRCMMAC_TextBox.Visible = true; label8.Visible = true;
+                QRWANMAC_TextBox.Visible = true; label9.Visible = true;
+                QRMTAMAC_TextBox.Visible = true; label10.Visible = true;
+                QRCOMCAST_TextBox.Visible = true; label20.Visible = true;
+                QRTECHNICOLOR_TextBox.Visible = true; label21.Visible = true;
 
             }
             else if (ComboBox_Model.SelectedIndex == 1)
             {
                 SelectModel = 2;
                 InitOnnx("COX");
+                InitRegionOnnx("COX");
 
                 richTextBox_Barcode.Clear();
                 SN_TextBox.Clear();
@@ -4868,6 +5545,19 @@ namespace XB8_Program
                 BarcodePicture.Image = null;
                 MACPicture.Image = null;
                 RightPicture.Image = null;
+                MadePicture.Image = null;
+
+                OCRSN_TextBox.Visible = true; label33.Visible = true;
+                SNPicture.Visible = true; label30.Visible = true;
+                InputPicture.Visible = true; label34.Visible = true;
+                MadePicture.Visible = true; label36.Visible = true;
+
+                OCRWANMAC_TextBox.Visible = false; label2.Visible = false;
+                QRCMMAC_TextBox.Visible = false; label8.Visible = false;
+                QRWANMAC_TextBox.Visible = false; label9.Visible = false;
+                QRMTAMAC_TextBox.Visible = false; label10.Visible = false;
+                QRCOMCAST_TextBox.Visible = false; label20.Visible = false;
+                QRTECHNICOLOR_TextBox.Visible = false; label21.Visible = false;
             }
         }
 
@@ -4889,6 +5579,20 @@ namespace XB8_Program
             {
                 ImageRotation = 270;
             }
+        }
+
+        private void Reset_Yield(object sender, EventArgs e)
+        {
+            TotalCount = 0;
+            PassCount = 0;
+            NgCount = 0;
+
+            double yieldRate = 0;
+
+            label_total.Text = TotalCount.ToString();
+            label_pass.Text = PassCount.ToString();
+            label_ng.Text = NgCount.ToString();
+            label_yieldrate.Text = yieldRate.ToString("F2") + " %";
         }
     }
 }
