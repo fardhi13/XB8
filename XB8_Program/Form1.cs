@@ -275,6 +275,9 @@ namespace XB8_Program
             GVL.StartXLEFTSIDE = GVL.StartYLEFTSIDE = GVL.WidthLEFTSIDE = GVL.HeightLEFTSIDE = 0;
             GVL.StartXRIGHTSIDE = GVL.StartYRIGHTSIDE = GVL.WidthRIGHTSIDE = GVL.HeightRIGHTSIDE = 0;
             GVL.StartXLOGOAREA = GVL.StartYLOGOAREA = GVL.WidthLOGOAREA = GVL.HeightLOGOAREA = 0;
+            GVL.StartXDATE = GVL.StartYDATE = GVL.WidthDATE = GVL.HeightDATE = 0;
+            GVL.OCR_Date = "";
+            GVL.IsDateValid = true;
             GVL.IsLogoDetected = false;
         }
 
@@ -421,6 +424,224 @@ namespace XB8_Program
             }
             
             await MQTT.InitializeAsync();
+        }
+
+        private Rectangle MatchDateRegion(Bitmap sourceBmp)
+        {
+            string templatePath = GVL.DateTemplatePath;
+
+            Rectangle emptyRect = new Rectangle(0, 0, 0, 0);
+
+            if (!File.Exists(templatePath))
+            {
+                Console.WriteLine($"[DATE TEMPLATE] Template not found: {templatePath}");
+                return emptyRect;
+            }
+
+            using (Mat source = BitmapConverter.ToMat(sourceBmp))
+            using (Mat template = new Mat(templatePath, ImreadModes.Color))
+            {
+                // Validasi ukuran
+                if (template.Width > source.Width || template.Height > source.Height)
+                {
+                    Console.WriteLine("[DATE TEMPLATE] Template lebih besar dari source image!");
+                    return emptyRect;
+                }
+
+                // ===== FIX: Konversi source ke 3-channel (color) =====
+                Mat sourceMatch = new Mat();
+                if (source.Channels() == 1)
+                {
+                    // Source grayscale → konversi ke BGR (3-channel)
+                    Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.GRAY2BGR);
+                    Console.WriteLine("[DATE TEMPLATE] Source converted: GRAY → BGR");
+                }
+                else if (source.Channels() == 4)
+                {
+                    // Source BGRA → konversi ke BGR
+                    Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.BGRA2BGR);
+                    Console.WriteLine("[DATE TEMPLATE] Source converted: BGRA → BGR");
+                }
+                else
+                {
+                    // Sudah 3-channel, clone saja
+                    sourceMatch = source.Clone();
+                }
+
+                // ===== Template Matching =====
+                Mat result = new Mat(sourceMatch.Rows - template.Rows + 1,
+                                     sourceMatch.Cols - template.Cols + 1,
+                                     MatType.CV_32FC1);
+
+                Cv2.MatchTemplate(sourceMatch, template, result, TemplateMatchModes.CCoeffNormed);
+                Cv2.MinMaxLoc(result, out double minVal, out double maxVal,
+                              out OpenCvSharp.Point minLoc, out OpenCvSharp.Point maxLoc);
+
+                Console.WriteLine($"[DATE TEMPLATE] Confidence: {maxVal:F3} | Position: ({maxLoc.X}, {maxLoc.Y})");
+
+                // Threshold confidence
+                const double CONFIDENCE_THRESHOLD = 0.5;
+                if (maxVal < CONFIDENCE_THRESHOLD)
+                {
+                    Console.WriteLine($"[DATE TEMPLATE] Confidence too low: {maxVal:F3} < {CONFIDENCE_THRESHOLD}");
+
+                    this.Invoke(new Action(() =>
+                    {
+                        DatePicture.Image = null;
+                    }));
+
+                    sourceMatch.Dispose();
+                    result.Dispose();
+                    return emptyRect;
+                }
+
+                // ROI = area template yang ditemukan
+                Rectangle dateRect = new Rectangle(maxLoc.X, maxLoc.Y, template.Width, template.Height);
+
+                Console.WriteLine($"[DATE TEMPLATE] Date ROI: X={dateRect.X}, Y={dateRect.Y}, W={dateRect.Width}, H={dateRect.Height}");
+
+                // Crop dari source ASLI untuk ditampilkan
+                try
+                {
+                    Bitmap croppedDate = CropImage(sourceBmp, dateRect);
+
+                    // Rotasi 270°
+                    croppedDate.RotateFlip(RotateFlipType.Rotate270FlipNone);
+
+                    this.Invoke(new Action(() =>
+                    {
+                        DatePicture.Image?.Dispose();
+                        DatePicture.Image = croppedDate;
+                    }));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DATE TEMPLATE] Error cropping: {ex.Message}");
+                }
+
+                sourceMatch.Dispose();
+                result.Dispose();
+                return dateRect;
+            }
+        }
+
+        private bool IsValidDate(string yymmdd)
+        {
+            if (yymmdd.Length != 6)
+                return false;
+
+            try
+            {
+                int year = int.Parse(yymmdd.Substring(0, 2));
+                int month = int.Parse(yymmdd.Substring(2, 2));
+                int day = int.Parse(yymmdd.Substring(4, 2));
+
+                // Tahun 2000+
+                int fullYear = 2000 + year;
+
+                // Bulan 01-12
+                if (month < 1 || month > 12)
+                    return false;
+
+                // Hari 01-31
+                if (day < 1 || day > 31)
+                    return false;
+
+                // Cek validitas tanggal (bulan Februari, dll.)
+                DateTime dt = new DateTime(fullYear, month, day);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        
+        private bool ValidateDateProduct()
+        {
+            // Jika date region tidak ditemukan
+            if (GVL.WidthDATE <= 0 || GVL.HeightDATE <= 0)
+            {
+                AppendLogText("[DATE] Region not detected, skipping validation", Color.Orange);
+                return true;
+            }
+
+            try
+            {
+                // Ambil langsung dari DatePicture (sudah di-crop + rotate 270°)
+                Bitmap dateCrop = new Bitmap(DatePicture.Image);
+
+                // ===== 1. OCR DATE =====
+                string rawOCR = ProcessOCR_Paddle(dateCrop);
+                Console.WriteLine($"[DATE OCR RAW]: {rawOCR}");
+
+                // Clean hasil OCR
+                string cleaned = rawOCR
+                    .Replace(" ", "")
+                    .Replace("\n", "")
+                    .Replace("\r", "")
+                    .Replace("-", "")
+                    .Replace(".", "")
+                    .ToUpperInvariant()
+                    .Trim();
+
+                Console.WriteLine($"[DATE OCR CLEANED]: {cleaned}");
+
+                // ===== 2. VALIDASI FORMAT YYMMDDF69 =====
+                var match = Regex.Match(cleaned, @"\d{6}F69");
+
+                if (!match.Success)
+                {
+                    GVL.OCR_Date = "";
+                    AppendLogText($"[DATE] Pattern YYMMDDF69 not found. OCR: {rawOCR}", Color.Red);
+                    return false;
+                }
+
+                string fullText = match.Value;        // "260625F69"
+                string datePart = fullText.Substring(0, 6); // "260625"
+
+                // Validasi format tanggal
+                if (!IsValidDate(datePart))
+                {
+                    GVL.OCR_Date = "";
+                    AppendLogText($"[DATE] Invalid date: {fullText}", Color.Red);
+                    return false;
+                }
+
+                // ===== 3. MODE PENGECEKAN =====
+                if (GVL.OnlyDateNow)
+                {
+                    // Bandingkan dengan tanggal hari ini
+                    string today = DateTime.Now.ToString("yyMMdd");
+                    Console.WriteLine($"[DATE] Today: {today} | OCR: {datePart}");
+
+                    if (datePart == today)
+                    {
+                        GVL.OCR_Date = fullText;
+                        AppendLogText($"[DATE] Valid (Today): {fullText}", Color.Green);
+                        return true;
+                    }
+                    else
+                    {
+                        GVL.OCR_Date = "";
+                        AppendLogText($"[DATE] Mismatch! Expected: {today}F69, Got: {fullText}", Color.Red);
+                        return false;
+                    }
+                }
+                else
+                {
+                    // Mode bebas
+                    GVL.OCR_Date = fullText;
+                    AppendLogText($"[DATE] Valid: {fullText}", Color.Green);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLogText($"[DATE] Error: {ex.Message}", Color.Red);
+                return false;
+            }
         }
 
         private string GetRegionName(int classId)
@@ -620,7 +841,7 @@ namespace XB8_Program
         private void CheckingProcess()
         {
             bool isPassModel = false, isPassFCC = false, isPassCM = false, isPassWAN = false, isPassMTA = false, isPassSN = false, isPassNetworkName = false, isPassPassword = false, 
-                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false, isPassInput = false, isPassMade = false, isPassRegulation = false;
+                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false, isPassInput = false, isPassMade = false, isPassRegulation = false, isPassDate = false;
 
             isScanReady = false;
             isOCRReady = false;
@@ -1108,9 +1329,17 @@ namespace XB8_Program
 
                     AppendLogText("Logo NOT detected!", Color.Red);
                 }
+
+                // DATE PRODUCT
+                isPassDate = ValidateDateProduct();
+                if (!isPassDate && string.IsNullOrEmpty(failReason))
+                {
+                    failReason = "Date_Invalid";
+                }
+
                 this.Invoke(new Action(() =>
                 {
-                    if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)
+                    if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo && isPassDate)
                     {
                         isPassBarcode = false;
                         isPassQR = false;
@@ -1721,9 +1950,16 @@ namespace XB8_Program
                     AppendLogText("Logo NOT detected!", Color.Red);
                 }
 
+                // DATE PRODUCT
+                isPassDate = ValidateDateProduct();
+                if (!isPassDate && string.IsNullOrEmpty(failReason))
+                {
+                    failReason = "Date_Invalid";
+                }
+
                 this.Invoke(new Action(() =>
                 {
-                    if (isPassModel && isPassFCC && isPassCM && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassInput && isPassMade && isPassRegulation && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)
+                    if (isPassModel && isPassFCC && isPassCM && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassInput && isPassMade && isPassRegulation && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo && isPassDate)
                     {
                         isPassBarcode = false;
                         isPassQR = false;
@@ -2663,6 +2899,28 @@ namespace XB8_Program
                         }
                     }
 
+                    // TEMPLATE MATCHING DATE PRODUCT 
+                    Rectangle dateRect = MatchDateRegion(imageBitmap);
+
+                    if (dateRect.Width > 0 && dateRect.Height > 0)
+                    {
+                        GVL.StartXDATE = dateRect.X;
+                        GVL.StartYDATE = dateRect.Y;
+                        GVL.WidthDATE = dateRect.Width;
+                        GVL.HeightDATE = dateRect.Height;
+
+                        Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                    }
+                    else
+                    {
+                        GVL.StartXDATE = 0;
+                        GVL.StartYDATE = 0;
+                        GVL.WidthDATE = 0;
+                        GVL.HeightDATE = 0;
+
+                        Console.WriteLine("[DATE] Template matching failed, date region not found");
+                    }
+
 
                     Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
                 {
@@ -3060,6 +3318,7 @@ namespace XB8_Program
                         _ = MQTT.SendFail("OCR_Fail");
                     }
 
+
                     CheckReady();
                 }
                 catch (Exception ex)
@@ -3293,6 +3552,28 @@ namespace XB8_Program
                                 GVL.IsLogoDetected = true;
                                 break;
                         }
+                    }
+
+                    // TEMPLATE MATCHING DATE PRODUCT 
+                    Rectangle dateRect = MatchDateRegion(imageBitmap);
+
+                    if (dateRect.Width > 0 && dateRect.Height > 0)
+                    {
+                        GVL.StartXDATE = dateRect.X;
+                        GVL.StartYDATE = dateRect.Y;
+                        GVL.WidthDATE = dateRect.Width;
+                        GVL.HeightDATE = dateRect.Height;
+
+                        Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                    }
+                    else
+                    {
+                        GVL.StartXDATE = 0;
+                        GVL.StartYDATE = 0;
+                        GVL.WidthDATE = 0;
+                        GVL.HeightDATE = 0;
+
+                        Console.WriteLine("[DATE] Template matching failed, date region not found");
                     }
 
                     // CROPPING 
@@ -4218,6 +4499,28 @@ namespace XB8_Program
                             }
                         }
 
+                        // TEMPLATE MATCHING DATE PRODUCT 
+                        Rectangle dateRect = MatchDateRegion(imageBitmap);
+
+                        if (dateRect.Width > 0 && dateRect.Height > 0)
+                        {
+                            GVL.StartXDATE = dateRect.X;
+                            GVL.StartYDATE = dateRect.Y;
+                            GVL.WidthDATE = dateRect.Width;
+                            GVL.HeightDATE = dateRect.Height;
+
+                            Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                        }
+                        else
+                        {
+                            GVL.StartXDATE = 0;
+                            GVL.StartYDATE = 0;
+                            GVL.WidthDATE = 0;
+                            GVL.HeightDATE = 0;
+
+                            Console.WriteLine("[DATE] Template matching failed, date region not found");
+                        }
+
                         // CROPPING + OCR
                         Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
                     {
@@ -4567,6 +4870,7 @@ namespace XB8_Program
                             isLeftLabelReady && isRightLabelReady)
                         {
                             isOCRReady = true;
+                            
                         }
                         else
                         {
@@ -4614,6 +4918,8 @@ namespace XB8_Program
                             SaveImageByResult(SourcePicture.Image, false);
                             UpdateCounter(false);
                         }
+
+                        
 
                         CheckReady();
                     }
@@ -4856,6 +5162,28 @@ namespace XB8_Program
                                     GVL.IsLogoDetected = true;
                                     break;
                             }
+                        }
+
+                        // TEMPLATE MATCHING DATE PRODUCT 
+                        Rectangle dateRect = MatchDateRegion(imageBitmap);
+
+                        if (dateRect.Width > 0 && dateRect.Height > 0)
+                        {
+                            GVL.StartXDATE = dateRect.X;
+                            GVL.StartYDATE = dateRect.Y;
+                            GVL.WidthDATE = dateRect.Width;
+                            GVL.HeightDATE = dateRect.Height;
+
+                            Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                        }
+                        else
+                        {
+                            GVL.StartXDATE = 0;
+                            GVL.StartYDATE = 0;
+                            GVL.WidthDATE = 0;
+                            GVL.HeightDATE = 0;
+
+                            Console.WriteLine("[DATE] Template matching failed, date region not found");
                         }
 
                         // CROPPING 

@@ -221,6 +221,9 @@
     <Content Include="cls_engine.py">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Templates\DATE_Template.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="ZBar\libiconv-2.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

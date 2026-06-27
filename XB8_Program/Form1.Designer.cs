@@ -109,6 +109,8 @@
             this.label30 = new System.Windows.Forms.Label();
             this.SNPicture = new System.Windows.Forms.PictureBox();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.label37 = new System.Windows.Forms.Label();
+            this.DatePicture = new System.Windows.Forms.PictureBox();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ModelPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MACPicture)).BeginInit();
@@ -129,6 +131,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.InputPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).BeginInit();
             this.panel3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DatePicture)).BeginInit();
             this.SuspendLayout();
             // 
             // label16
@@ -431,7 +434,7 @@
             // ModelPicture
             // 
             this.ModelPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.ModelPicture.Location = new System.Drawing.Point(12, 376);
+            this.ModelPicture.Location = new System.Drawing.Point(12, 365);
             this.ModelPicture.Name = "ModelPicture";
             this.ModelPicture.Size = new System.Drawing.Size(216, 32);
             this.ModelPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -442,7 +445,7 @@
             // 
             this.label22.AutoSize = true;
             this.label22.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label22.Location = new System.Drawing.Point(12, 358);
+            this.label22.Location = new System.Drawing.Point(12, 347);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(95, 15);
             this.label22.TabIndex = 90;
@@ -451,7 +454,7 @@
             // MACPicture
             // 
             this.MACPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MACPicture.Location = new System.Drawing.Point(253, 607);
+            this.MACPicture.Location = new System.Drawing.Point(253, 570);
             this.MACPicture.Name = "MACPicture";
             this.MACPicture.Size = new System.Drawing.Size(216, 56);
             this.MACPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -461,7 +464,7 @@
             // PasswordPicture
             // 
             this.PasswordPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.PasswordPicture.Location = new System.Drawing.Point(12, 551);
+            this.PasswordPicture.Location = new System.Drawing.Point(12, 535);
             this.PasswordPicture.Name = "PasswordPicture";
             this.PasswordPicture.Size = new System.Drawing.Size(216, 32);
             this.PasswordPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -472,7 +475,7 @@
             // 
             this.label25.AutoSize = true;
             this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label25.Location = new System.Drawing.Point(12, 533);
+            this.label25.Location = new System.Drawing.Point(12, 517);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(117, 15);
             this.label25.TabIndex = 88;
@@ -481,7 +484,7 @@
             // SSIDPicture
             // 
             this.SSIDPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.SSIDPicture.Location = new System.Drawing.Point(12, 494);
+            this.SSIDPicture.Location = new System.Drawing.Point(12, 478);
             this.SSIDPicture.Name = "SSIDPicture";
             this.SSIDPicture.Size = new System.Drawing.Size(216, 36);
             this.SSIDPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -492,7 +495,7 @@
             // 
             this.label24.AutoSize = true;
             this.label24.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label24.Location = new System.Drawing.Point(12, 476);
+            this.label24.Location = new System.Drawing.Point(12, 460);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(87, 15);
             this.label24.TabIndex = 86;
@@ -515,7 +518,7 @@
             // 
             this.label23.AutoSize = true;
             this.label23.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label23.Location = new System.Drawing.Point(9, 413);
+            this.label23.Location = new System.Drawing.Point(9, 402);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(99, 15);
             this.label23.TabIndex = 92;
@@ -537,7 +540,7 @@
             // FCCIDPicture
             // 
             this.FCCIDPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.FCCIDPicture.Location = new System.Drawing.Point(12, 431);
+            this.FCCIDPicture.Location = new System.Drawing.Point(12, 420);
             this.FCCIDPicture.Name = "FCCIDPicture";
             this.FCCIDPicture.Size = new System.Drawing.Size(216, 32);
             this.FCCIDPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -707,9 +710,9 @@
             // 
             this.FCCRegulationPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.FCCRegulationPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.FCCRegulationPicture.Location = new System.Drawing.Point(12, 635);
+            this.FCCRegulationPicture.Location = new System.Drawing.Point(12, 607);
             this.FCCRegulationPicture.Name = "FCCRegulationPicture";
-            this.FCCRegulationPicture.Size = new System.Drawing.Size(216, 66);
+            this.FCCRegulationPicture.Size = new System.Drawing.Size(216, 62);
             this.FCCRegulationPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.FCCRegulationPicture.TabIndex = 73;
             this.FCCRegulationPicture.TabStop = false;
@@ -718,9 +721,9 @@
             // 
             this.RightPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.RightPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.RightPicture.Location = new System.Drawing.Point(253, 694);
+            this.RightPicture.Location = new System.Drawing.Point(253, 657);
             this.RightPicture.Name = "RightPicture";
-            this.RightPicture.Size = new System.Drawing.Size(239, 88);
+            this.RightPicture.Size = new System.Drawing.Size(239, 79);
             this.RightPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.RightPicture.TabIndex = 72;
             this.RightPicture.TabStop = false;
@@ -769,7 +772,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.Location = new System.Drawing.Point(12, 599);
+            this.label12.Location = new System.Drawing.Point(12, 571);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(153, 30);
             this.label12.TabIndex = 75;
@@ -779,7 +782,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(250, 676);
+            this.label5.Location = new System.Drawing.Point(250, 639);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(118, 15);
             this.label5.TabIndex = 74;
@@ -804,7 +807,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(253, 589);
+            this.label4.Location = new System.Drawing.Point(253, 552);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(84, 15);
             this.label4.TabIndex = 70;
@@ -825,7 +828,7 @@
             this.SourcePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.SourcePicture.Location = new System.Drawing.Point(12, 28);
             this.SourcePicture.Name = "SourcePicture";
-            this.SourcePicture.Size = new System.Drawing.Size(481, 327);
+            this.SourcePicture.Size = new System.Drawing.Size(481, 316);
             this.SourcePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.SourcePicture.TabIndex = 68;
             this.SourcePicture.TabStop = false;
@@ -852,9 +855,9 @@
             // 
             this.QRPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.QRPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.QRPicture.Location = new System.Drawing.Point(254, 376);
+            this.QRPicture.Location = new System.Drawing.Point(254, 365);
             this.QRPicture.Name = "QRPicture";
-            this.QRPicture.Size = new System.Drawing.Size(239, 135);
+            this.QRPicture.Size = new System.Drawing.Size(239, 102);
             this.QRPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.QRPicture.TabIndex = 96;
             this.QRPicture.TabStop = false;
@@ -863,7 +866,7 @@
             // 
             this.label27.AutoSize = true;
             this.label27.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label27.Location = new System.Drawing.Point(251, 359);
+            this.label27.Location = new System.Drawing.Point(251, 348);
             this.label27.Name = "label27";
             this.label27.Size = new System.Drawing.Size(27, 15);
             this.label27.TabIndex = 97;
@@ -873,7 +876,7 @@
             // 
             this.BarcodePicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.BarcodePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.BarcodePicture.Location = new System.Drawing.Point(253, 529);
+            this.BarcodePicture.Location = new System.Drawing.Point(253, 492);
             this.BarcodePicture.Name = "BarcodePicture";
             this.BarcodePicture.Size = new System.Drawing.Size(239, 54);
             this.BarcodePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -884,7 +887,7 @@
             // 
             this.label28.AutoSize = true;
             this.label28.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label28.Location = new System.Drawing.Point(250, 511);
+            this.label28.Location = new System.Drawing.Point(250, 474);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(60, 15);
             this.label28.TabIndex = 99;
@@ -1047,6 +1050,8 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.label37);
+            this.panel2.Controls.Add(this.DatePicture);
             this.panel2.Controls.Add(this.label36);
             this.panel2.Controls.Add(this.MadePicture);
             this.panel2.Controls.Add(this.label34);
@@ -1083,7 +1088,7 @@
             // 
             this.label36.AutoSize = true;
             this.label36.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label36.Location = new System.Drawing.Point(253, 788);
+            this.label36.Location = new System.Drawing.Point(250, 744);
             this.label36.Name = "label36";
             this.label36.Size = new System.Drawing.Size(132, 15);
             this.label36.TabIndex = 105;
@@ -1093,7 +1098,7 @@
             // 
             this.MadePicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.MadePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MadePicture.Location = new System.Drawing.Point(256, 806);
+            this.MadePicture.Location = new System.Drawing.Point(253, 762);
             this.MadePicture.Name = "MadePicture";
             this.MadePicture.Size = new System.Drawing.Size(216, 39);
             this.MadePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -1104,7 +1109,7 @@
             // 
             this.label34.AutoSize = true;
             this.label34.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label34.Location = new System.Drawing.Point(9, 776);
+            this.label34.Location = new System.Drawing.Point(9, 731);
             this.label34.Name = "label34";
             this.label34.Size = new System.Drawing.Size(112, 15);
             this.label34.TabIndex = 103;
@@ -1114,7 +1119,7 @@
             // 
             this.InputPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.InputPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.InputPicture.Location = new System.Drawing.Point(12, 794);
+            this.InputPicture.Location = new System.Drawing.Point(12, 749);
             this.InputPicture.Name = "InputPicture";
             this.InputPicture.Size = new System.Drawing.Size(216, 39);
             this.InputPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -1125,7 +1130,7 @@
             // 
             this.label30.AutoSize = true;
             this.label30.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label30.Location = new System.Drawing.Point(9, 704);
+            this.label30.Location = new System.Drawing.Point(9, 670);
             this.label30.Name = "label30";
             this.label30.Size = new System.Drawing.Size(72, 15);
             this.label30.TabIndex = 101;
@@ -1135,7 +1140,7 @@
             // 
             this.SNPicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.SNPicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.SNPicture.Location = new System.Drawing.Point(12, 722);
+            this.SNPicture.Location = new System.Drawing.Point(12, 688);
             this.SNPicture.Name = "SNPicture";
             this.SNPicture.Size = new System.Drawing.Size(216, 39);
             this.SNPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -1159,6 +1164,27 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(533, 862);
             this.panel3.TabIndex = 102;
+            // 
+            // label37
+            // 
+            this.label37.AutoSize = true;
+            this.label37.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label37.Location = new System.Drawing.Point(11, 792);
+            this.label37.Name = "label37";
+            this.label37.Size = new System.Drawing.Size(90, 15);
+            this.label37.TabIndex = 107;
+            this.label37.Text = "Date Product";
+            // 
+            // DatePicture
+            // 
+            this.DatePicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.DatePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.DatePicture.Location = new System.Drawing.Point(11, 810);
+            this.DatePicture.Name = "DatePicture";
+            this.DatePicture.Size = new System.Drawing.Size(216, 39);
+            this.DatePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.DatePicture.TabIndex = 106;
+            this.DatePicture.TabStop = false;
             // 
             // Form1
             // 
@@ -1201,6 +1227,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DatePicture)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1288,6 +1315,8 @@
         public System.Windows.Forms.PictureBox InputPicture;
         public System.Windows.Forms.Label label36;
         public System.Windows.Forms.PictureBox MadePicture;
+        public System.Windows.Forms.Label label37;
+        public System.Windows.Forms.PictureBox DatePicture;
     }
 }
 
