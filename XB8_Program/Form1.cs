@@ -448,17 +448,17 @@ namespace XB8_Program
                     return emptyRect;
                 }
 
-                // ===== FIX: Konversi source ke 3-channel (color) =====
+                // Konversi source ke 3-channel (color) 
                 Mat sourceMatch = new Mat();
                 if (source.Channels() == 1)
                 {
-                    // Source grayscale → konversi ke BGR (3-channel)
+                    // Source grayscale konversi ke BGR (3-channel)
                     Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.GRAY2BGR);
                     Console.WriteLine("[DATE TEMPLATE] Source converted: GRAY → BGR");
                 }
                 else if (source.Channels() == 4)
                 {
-                    // Source BGRA → konversi ke BGR
+                    // Source BGRA konversi ke BGR
                     Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.BGRA2BGR);
                     Console.WriteLine("[DATE TEMPLATE] Source converted: BGRA → BGR");
                 }
@@ -468,7 +468,7 @@ namespace XB8_Program
                     sourceMatch = source.Clone();
                 }
 
-                // ===== Template Matching =====
+                // Template Matching
                 Mat result = new Mat(sourceMatch.Rows - template.Rows + 1,
                                      sourceMatch.Cols - template.Cols + 1,
                                      MatType.CV_32FC1);
@@ -572,7 +572,7 @@ namespace XB8_Program
                 // Ambil langsung dari DatePicture (sudah di-crop + rotate 270°)
                 Bitmap dateCrop = new Bitmap(DatePicture.Image);
 
-                // ===== 1. OCR DATE =====
+                // OCR DATE 
                 string rawOCR = ProcessOCR_Paddle(dateCrop);
                 Console.WriteLine($"[DATE OCR RAW]: {rawOCR}");
 
@@ -588,7 +588,7 @@ namespace XB8_Program
 
                 Console.WriteLine($"[DATE OCR CLEANED]: {cleaned}");
 
-                // ===== 2. VALIDASI FORMAT YYMMDDF69 =====
+                //VALIDATION FORMAT YYMMDDF69 
                 var match = Regex.Match(cleaned, @"\d{6}F69");
 
                 if (!match.Success)
@@ -609,7 +609,7 @@ namespace XB8_Program
                     return false;
                 }
 
-                // ===== 3. MODE PENGECEKAN =====
+                //  MODE Checking
                 if (GVL.OnlyDateNow)
                 {
                     // Bandingkan dengan tanggal hari ini

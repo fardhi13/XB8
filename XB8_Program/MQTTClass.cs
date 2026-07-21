@@ -65,7 +65,7 @@ namespace XB8_Program
                     Desc = "LABEL_INSPECTION_FAIL",
                     Message = $"FAIL,{reason}"
                 };
-
+                
                 string payload = JsonConvert.SerializeObject(data);
 
                 var message = new MqttApplicationMessageBuilder()
