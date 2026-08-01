@@ -10,15 +10,22 @@ namespace XB8_Program
 {
     public class GlobalVariable
     {
-        public bool OnlyDateNow = bool.Parse(ConfigurationManager.AppSettings["OnlyDateNow"]);
+        //public bool OnlyDateNow = bool.Parse(ConfigurationManager.AppSettings["OnlyDateNow"]);
         public bool SaveCropped = bool.Parse(ConfigurationManager.AppSettings["SaveCropped"]);
         public string RunningModel = ConfigurationManager.AppSettings["RunningModel"];
         public string WatcherDir = ConfigurationManager.AppSettings["WatcherDir"];
         public int MinimumScoreCOM = int.Parse(ConfigurationManager.AppSettings["MinimumScoreCOM"]);
         public int MinimumScoreCOX = int.Parse(ConfigurationManager.AppSettings["MinimumScoreCOX"]);
-        public string DateTemplatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DATE_Template.jpg");
-        public string OCR_Date;
-        public bool IsDateValid = true;  
+        //public string DateTemplatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "DATE_Template.jpg");
+        //public string OCR_Date;
+        //public bool IsDateValid = true;  
+
+        public bool Levenshtein = bool.Parse(ConfigurationManager.AppSettings["Levenshtein"]);
+
+        public string OCR_LeftLabel;       // hasil OCR mentah left label
+        public string LeftLabelReference;  // teks referensi left label
+        public string OCR_RightLabel;      // hasil OCR mentah right label
+        public string RightLabelReference; // teks referensi right label
 
         public int StartXPN, StartYPN, WidthPN, HeightPN;
         public int StartXMAC, StartYMAC, WidthMAC, HeightMAC;
@@ -35,7 +42,7 @@ namespace XB8_Program
         public int StartXMADE, StartYMADE, WidthMADE, HeightMADE;
         public int StartXREGULATION, StartYREGULATION, WidthREGULATION, HeightREGULATION;
 
-        public int StartXDATE, StartYDATE, WidthDATE, HeightDATE;
+        //public int StartXDATE, StartYDATE, WidthDATE, HeightDATE;
 
         public bool IsLogoDetected = false;
 

@@ -109,8 +109,6 @@
             this.label30 = new System.Windows.Forms.Label();
             this.SNPicture = new System.Windows.Forms.PictureBox();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.label37 = new System.Windows.Forms.Label();
-            this.DatePicture = new System.Windows.Forms.PictureBox();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ModelPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MACPicture)).BeginInit();
@@ -131,7 +129,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.InputPicture)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).BeginInit();
             this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.DatePicture)).BeginInit();
             this.SuspendLayout();
             // 
             // label16
@@ -1050,8 +1047,6 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.label37);
-            this.panel2.Controls.Add(this.DatePicture);
             this.panel2.Controls.Add(this.label36);
             this.panel2.Controls.Add(this.MadePicture);
             this.panel2.Controls.Add(this.label34);
@@ -1165,27 +1160,6 @@
             this.panel3.Size = new System.Drawing.Size(533, 862);
             this.panel3.TabIndex = 102;
             // 
-            // label37
-            // 
-            this.label37.AutoSize = true;
-            this.label37.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label37.Location = new System.Drawing.Point(11, 792);
-            this.label37.Name = "label37";
-            this.label37.Size = new System.Drawing.Size(90, 15);
-            this.label37.TabIndex = 107;
-            this.label37.Text = "Date Product";
-            // 
-            // DatePicture
-            // 
-            this.DatePicture.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.DatePicture.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.DatePicture.Location = new System.Drawing.Point(11, 810);
-            this.DatePicture.Name = "DatePicture";
-            this.DatePicture.Size = new System.Drawing.Size(216, 39);
-            this.DatePicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.DatePicture.TabIndex = 106;
-            this.DatePicture.TabStop = false;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1227,7 +1201,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.SNPicture)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.DatePicture)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1315,8 +1288,6 @@
         public System.Windows.Forms.PictureBox InputPicture;
         public System.Windows.Forms.Label label36;
         public System.Windows.Forms.PictureBox MadePicture;
-        public System.Windows.Forms.Label label37;
-        public System.Windows.Forms.PictureBox DatePicture;
     }
 }
 

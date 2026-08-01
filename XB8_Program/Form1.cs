@@ -275,9 +275,9 @@ namespace XB8_Program
             GVL.StartXLEFTSIDE = GVL.StartYLEFTSIDE = GVL.WidthLEFTSIDE = GVL.HeightLEFTSIDE = 0;
             GVL.StartXRIGHTSIDE = GVL.StartYRIGHTSIDE = GVL.WidthRIGHTSIDE = GVL.HeightRIGHTSIDE = 0;
             GVL.StartXLOGOAREA = GVL.StartYLOGOAREA = GVL.WidthLOGOAREA = GVL.HeightLOGOAREA = 0;
-            GVL.StartXDATE = GVL.StartYDATE = GVL.WidthDATE = GVL.HeightDATE = 0;
-            GVL.OCR_Date = "";
-            GVL.IsDateValid = true;
+            //GVL.StartXDATE = GVL.StartYDATE = GVL.WidthDATE = GVL.HeightDATE = 0;
+            //GVL.OCR_Date = "";
+            //GVL.IsDateValid = true;
             GVL.IsLogoDetected = false;
         }
 
@@ -426,223 +426,223 @@ namespace XB8_Program
             await MQTT.InitializeAsync();
         }
 
-        private Rectangle MatchDateRegion(Bitmap sourceBmp)
-        {
-            string templatePath = GVL.DateTemplatePath;
+        //private Rectangle MatchDateRegion(Bitmap sourceBmp)
+        //{
+        //    string templatePath = GVL.DateTemplatePath;
 
-            Rectangle emptyRect = new Rectangle(0, 0, 0, 0);
+        //    Rectangle emptyRect = new Rectangle(0, 0, 0, 0);
 
-            if (!File.Exists(templatePath))
-            {
-                Console.WriteLine($"[DATE TEMPLATE] Template not found: {templatePath}");
-                return emptyRect;
-            }
+        //    if (!File.Exists(templatePath))
+        //    {
+        //        Console.WriteLine($"[DATE TEMPLATE] Template not found: {templatePath}");
+        //        return emptyRect;
+        //    }
 
-            using (Mat source = BitmapConverter.ToMat(sourceBmp))
-            using (Mat template = new Mat(templatePath, ImreadModes.Color))
-            {
-                // Validasi ukuran
-                if (template.Width > source.Width || template.Height > source.Height)
-                {
-                    Console.WriteLine("[DATE TEMPLATE] Template lebih besar dari source image!");
-                    return emptyRect;
-                }
+        //    using (Mat source = BitmapConverter.ToMat(sourceBmp))
+        //    using (Mat template = new Mat(templatePath, ImreadModes.Color))
+        //    {
+        //        // Validasi ukuran
+        //        if (template.Width > source.Width || template.Height > source.Height)
+        //        {
+        //            Console.WriteLine("[DATE TEMPLATE] Template lebih besar dari source image!");
+        //            return emptyRect;
+        //        }
 
-                // Konversi source ke 3-channel (color) 
-                Mat sourceMatch = new Mat();
-                if (source.Channels() == 1)
-                {
-                    // Source grayscale konversi ke BGR (3-channel)
-                    Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.GRAY2BGR);
-                    Console.WriteLine("[DATE TEMPLATE] Source converted: GRAY → BGR");
-                }
-                else if (source.Channels() == 4)
-                {
-                    // Source BGRA konversi ke BGR
-                    Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.BGRA2BGR);
-                    Console.WriteLine("[DATE TEMPLATE] Source converted: BGRA → BGR");
-                }
-                else
-                {
-                    // Sudah 3-channel, clone saja
-                    sourceMatch = source.Clone();
-                }
+        //        // Konversi source ke 3-channel (color) 
+        //        Mat sourceMatch = new Mat();
+        //        if (source.Channels() == 1)
+        //        {
+        //            // Source grayscale konversi ke BGR (3-channel)
+        //            Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.GRAY2BGR);
+        //            Console.WriteLine("[DATE TEMPLATE] Source converted: GRAY → BGR");
+        //        }
+        //        else if (source.Channels() == 4)
+        //        {
+        //            // Source BGRA konversi ke BGR
+        //            Cv2.CvtColor(source, sourceMatch, ColorConversionCodes.BGRA2BGR);
+        //            Console.WriteLine("[DATE TEMPLATE] Source converted: BGRA → BGR");
+        //        }
+        //        else
+        //        {
+        //            // Sudah 3-channel, clone saja
+        //            sourceMatch = source.Clone();
+        //        }
 
-                // Template Matching
-                Mat result = new Mat(sourceMatch.Rows - template.Rows + 1,
-                                     sourceMatch.Cols - template.Cols + 1,
-                                     MatType.CV_32FC1);
+        //        // Template Matching
+        //        Mat result = new Mat(sourceMatch.Rows - template.Rows + 1,
+        //                             sourceMatch.Cols - template.Cols + 1,
+        //                             MatType.CV_32FC1);
 
-                Cv2.MatchTemplate(sourceMatch, template, result, TemplateMatchModes.CCoeffNormed);
-                Cv2.MinMaxLoc(result, out double minVal, out double maxVal,
-                              out OpenCvSharp.Point minLoc, out OpenCvSharp.Point maxLoc);
+        //        Cv2.MatchTemplate(sourceMatch, template, result, TemplateMatchModes.CCoeffNormed);
+        //        Cv2.MinMaxLoc(result, out double minVal, out double maxVal,
+        //                      out OpenCvSharp.Point minLoc, out OpenCvSharp.Point maxLoc);
 
-                Console.WriteLine($"[DATE TEMPLATE] Confidence: {maxVal:F3} | Position: ({maxLoc.X}, {maxLoc.Y})");
+        //        Console.WriteLine($"[DATE TEMPLATE] Confidence: {maxVal:F3} | Position: ({maxLoc.X}, {maxLoc.Y})");
 
-                // Threshold confidence
-                const double CONFIDENCE_THRESHOLD = 0.5;
-                if (maxVal < CONFIDENCE_THRESHOLD)
-                {
-                    Console.WriteLine($"[DATE TEMPLATE] Confidence too low: {maxVal:F3} < {CONFIDENCE_THRESHOLD}");
+        //        // Threshold confidence
+        //        const double CONFIDENCE_THRESHOLD = 0.5;
+        //        if (maxVal < CONFIDENCE_THRESHOLD)
+        //        {
+        //            Console.WriteLine($"[DATE TEMPLATE] Confidence too low: {maxVal:F3} < {CONFIDENCE_THRESHOLD}");
 
-                    this.Invoke(new Action(() =>
-                    {
-                        DatePicture.Image = null;
-                    }));
+        //            this.Invoke(new Action(() =>
+        //            {
+        //                DatePicture.Image = null;
+        //            }));
 
-                    sourceMatch.Dispose();
-                    result.Dispose();
-                    return emptyRect;
-                }
+        //            sourceMatch.Dispose();
+        //            result.Dispose();
+        //            return emptyRect;
+        //        }
 
-                // ROI = area template yang ditemukan
-                Rectangle dateRect = new Rectangle(maxLoc.X, maxLoc.Y, template.Width, template.Height);
+        //        // ROI = area template yang ditemukan
+        //        Rectangle dateRect = new Rectangle(maxLoc.X, maxLoc.Y, template.Width, template.Height);
 
-                Console.WriteLine($"[DATE TEMPLATE] Date ROI: X={dateRect.X}, Y={dateRect.Y}, W={dateRect.Width}, H={dateRect.Height}");
+        //        Console.WriteLine($"[DATE TEMPLATE] Date ROI: X={dateRect.X}, Y={dateRect.Y}, W={dateRect.Width}, H={dateRect.Height}");
 
-                // Crop dari source ASLI untuk ditampilkan
-                try
-                {
-                    Bitmap croppedDate = CropImage(sourceBmp, dateRect);
+        //        // Crop dari source ASLI untuk ditampilkan
+        //        try
+        //        {
+        //            Bitmap croppedDate = CropImage(sourceBmp, dateRect);
 
-                    // Rotasi 270°
-                    croppedDate.RotateFlip(RotateFlipType.Rotate270FlipNone);
+        //            // Rotasi 270°
+        //            croppedDate.RotateFlip(RotateFlipType.Rotate270FlipNone);
 
-                    this.Invoke(new Action(() =>
-                    {
-                        DatePicture.Image?.Dispose();
-                        DatePicture.Image = croppedDate;
-                    }));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[DATE TEMPLATE] Error cropping: {ex.Message}");
-                }
+        //            this.Invoke(new Action(() =>
+        //            {
+        //                DatePicture.Image?.Dispose();
+        //                DatePicture.Image = croppedDate;
+        //            }));
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"[DATE TEMPLATE] Error cropping: {ex.Message}");
+        //        }
 
-                sourceMatch.Dispose();
-                result.Dispose();
-                return dateRect;
-            }
-        }
+        //        sourceMatch.Dispose();
+        //        result.Dispose();
+        //        return dateRect;
+        //    }
+        //}
 
-        private bool IsValidDate(string yymmdd)
-        {
-            if (yymmdd.Length != 6)
-                return false;
+        //private bool IsValidDate(string yymmdd)
+        //{
+        //    if (yymmdd.Length != 6)
+        //        return false;
 
-            try
-            {
-                int year = int.Parse(yymmdd.Substring(0, 2));
-                int month = int.Parse(yymmdd.Substring(2, 2));
-                int day = int.Parse(yymmdd.Substring(4, 2));
+        //    try
+        //    {
+        //        int year = int.Parse(yymmdd.Substring(0, 2));
+        //        int month = int.Parse(yymmdd.Substring(2, 2));
+        //        int day = int.Parse(yymmdd.Substring(4, 2));
 
-                // Tahun 2000+
-                int fullYear = 2000 + year;
+        //        // Tahun 2000+
+        //        int fullYear = 2000 + year;
 
-                // Bulan 01-12
-                if (month < 1 || month > 12)
-                    return false;
+        //        // Bulan 01-12
+        //        if (month < 1 || month > 12)
+        //            return false;
 
-                // Hari 01-31
-                if (day < 1 || day > 31)
-                    return false;
+        //        // Hari 01-31
+        //        if (day < 1 || day > 31)
+        //            return false;
 
-                // Cek validitas tanggal (bulan Februari, dll.)
-                DateTime dt = new DateTime(fullYear, month, day);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        //        // Cek validitas tanggal (bulan Februari, dll.)
+        //        DateTime dt = new DateTime(fullYear, month, day);
+        //        return true;
+        //    }
+        //    catch
+        //    {
+        //        return false;
+        //    }
+        //}
 
         
-        private bool ValidateDateProduct()
-        {
-            // Jika date region tidak ditemukan
-            if (GVL.WidthDATE <= 0 || GVL.HeightDATE <= 0)
-            {
-                AppendLogText("[DATE] Region not detected, skipping validation", Color.Orange);
-                return true;
-            }
+        //private bool ValidateDateProduct()
+        //{
+        //    // Jika date region tidak ditemukan
+        //    if (GVL.WidthDATE <= 0 || GVL.HeightDATE <= 0)
+        //    {
+        //        AppendLogText("[DATE] Region not detected, skipping validation", Color.Orange);
+        //        return true;
+        //    }
 
-            try
-            {
-                // Ambil langsung dari DatePicture (sudah di-crop + rotate 270°)
-                Bitmap dateCrop = new Bitmap(DatePicture.Image);
+        //    try
+        //    {
+        //        // Ambil langsung dari DatePicture (sudah di-crop + rotate 270°)
+        //        Bitmap dateCrop = new Bitmap(DatePicture.Image);
 
-                // OCR DATE 
-                string rawOCR = ProcessOCR_Paddle(dateCrop);
-                Console.WriteLine($"[DATE OCR RAW]: {rawOCR}");
+        //        // OCR DATE 
+        //        string rawOCR = ProcessOCR_Paddle(dateCrop);
+        //        Console.WriteLine($"[DATE OCR RAW]: {rawOCR}");
 
-                // Clean hasil OCR
-                string cleaned = rawOCR
-                    .Replace(" ", "")
-                    .Replace("\n", "")
-                    .Replace("\r", "")
-                    .Replace("-", "")
-                    .Replace(".", "")
-                    .ToUpperInvariant()
-                    .Trim();
+        //        // Clean hasil OCR
+        //        string cleaned = rawOCR
+        //            .Replace(" ", "")
+        //            .Replace("\n", "")
+        //            .Replace("\r", "")
+        //            .Replace("-", "")
+        //            .Replace(".", "")
+        //            .ToUpperInvariant()
+        //            .Trim();
 
-                Console.WriteLine($"[DATE OCR CLEANED]: {cleaned}");
+        //        Console.WriteLine($"[DATE OCR CLEANED]: {cleaned}");
 
-                //VALIDATION FORMAT YYMMDDF69 
-                var match = Regex.Match(cleaned, @"\d{6}F69");
+        //        //VALIDATION FORMAT YYMMDDF69 
+        //        var match = Regex.Match(cleaned, @"\d{6}F69");
 
-                if (!match.Success)
-                {
-                    GVL.OCR_Date = "";
-                    AppendLogText($"[DATE] Pattern YYMMDDF69 not found. OCR: {rawOCR}", Color.Red);
-                    return false;
-                }
+        //        if (!match.Success)
+        //        {
+        //            GVL.OCR_Date = "";
+        //            AppendLogText($"[DATE] Pattern YYMMDDF69 not found. OCR: {rawOCR}", Color.Red);
+        //            return false;
+        //        }
 
-                string fullText = match.Value;        // "260625F69"
-                string datePart = fullText.Substring(0, 6); // "260625"
+        //        string fullText = match.Value;        // "260625F69"
+        //        string datePart = fullText.Substring(0, 6); // "260625"
 
-                // Validasi format tanggal
-                if (!IsValidDate(datePart))
-                {
-                    GVL.OCR_Date = "";
-                    AppendLogText($"[DATE] Invalid date: {fullText}", Color.Red);
-                    return false;
-                }
+        //        // Validasi format tanggal
+        //        if (!IsValidDate(datePart))
+        //        {
+        //            GVL.OCR_Date = "";
+        //            AppendLogText($"[DATE] Invalid date: {fullText}", Color.Red);
+        //            return false;
+        //        }
 
-                //  MODE Checking
-                if (GVL.OnlyDateNow)
-                {
-                    // Bandingkan dengan tanggal hari ini
-                    string today = DateTime.Now.ToString("yyMMdd");
-                    Console.WriteLine($"[DATE] Today: {today} | OCR: {datePart}");
+        //        //  MODE Checking
+        //        if (GVL.OnlyDateNow)
+        //        {
+        //            // Bandingkan dengan tanggal hari ini
+        //            string today = DateTime.Now.ToString("yyMMdd");
+        //            Console.WriteLine($"[DATE] Today: {today} | OCR: {datePart}");
 
-                    if (datePart == today)
-                    {
-                        GVL.OCR_Date = fullText;
-                        AppendLogText($"[DATE] Valid (Today): {fullText}", Color.Green);
-                        return true;
-                    }
-                    else
-                    {
-                        GVL.OCR_Date = "";
-                        AppendLogText($"[DATE] Mismatch! Expected: {today}F69, Got: {fullText}", Color.Red);
-                        return false;
-                    }
-                }
-                else
-                {
-                    // Mode bebas
-                    GVL.OCR_Date = fullText;
-                    AppendLogText($"[DATE] Valid: {fullText}", Color.Green);
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                AppendLogText($"[DATE] Error: {ex.Message}", Color.Red);
-                return false;
-            }
-        }
+        //            if (datePart == today)
+        //            {
+        //                GVL.OCR_Date = fullText;
+        //                AppendLogText($"[DATE] Valid (Today): {fullText}", Color.Green);
+        //                return true;
+        //            }
+        //            else
+        //            {
+        //                GVL.OCR_Date = "";
+        //                AppendLogText($"[DATE] Mismatch! Expected: {today}F69, Got: {fullText}", Color.Red);
+        //                return false;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Mode bebas
+        //            GVL.OCR_Date = fullText;
+        //            AppendLogText($"[DATE] Valid: {fullText}", Color.Green);
+        //            return true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        AppendLogText($"[DATE] Error: {ex.Message}", Color.Red);
+        //        return false;
+        //    }
+        //}
 
         private string GetRegionName(int classId)
         {
@@ -837,11 +837,53 @@ namespace XB8_Program
             label_yieldrate.Text = yieldRate.ToString("F2") + " %";
         }
 
+        private int LevenshteinDistance(string s1, string s2)
+        {
+            s1 = s1.ToUpperInvariant().Replace(" ", "");
+            s2 = s2.ToUpperInvariant().Replace(" ", "");
+
+            int[,] dp = new int[s1.Length + 1, s2.Length + 1];
+
+            for (int i = 0; i <= s1.Length; i++) dp[i, 0] = i;
+            for (int j = 0; j <= s2.Length; j++) dp[0, j] = j;
+
+            for (int i = 1; i <= s1.Length; i++)
+            {
+                for (int j = 1; j <= s2.Length; j++)
+                {
+                    int cost = s1[i - 1] == s2[j - 1] ? 0 : 1;
+                    dp[i, j] = Math.Min(
+                        Math.Min(dp[i - 1, j] + 1, dp[i, j - 1] + 1),
+                        dp[i - 1, j - 1] + cost);
+                }
+            }
+
+            return dp[s1.Length, s2.Length];
+        }
+        private bool IsMatchWithLevenshtein(string ocr, string expected, int maxDistance = 2)
+        {
+            if (string.IsNullOrEmpty(ocr) || string.IsNullOrEmpty(expected))
+                return false;
+
+            // Cek panjang dulu kalau beda > 2, langsung tolak
+            int lengthDiff = Math.Abs(ocr.Length - expected.Length);
+            if (lengthDiff > 2)
+            {
+                Console.WriteLine($"[LEV] Length diff too big: {lengthDiff} > 2 | OCR: '{ocr}' | Expected: '{expected}'");
+                return false;
+            }
+
+            // Baru hitung distance
+            int distance = LevenshteinDistance(ocr, expected);
+            Console.WriteLine($"[LEV] Distance: {distance} | Max: {maxDistance} | OCR: '{ocr}' | Expected: '{expected}'");
+
+            return distance <= maxDistance;
+        }
 
         private void CheckingProcess()
         {
-            bool isPassModel = false, isPassFCC = false, isPassCM = false, isPassWAN = false, isPassMTA = false, isPassSN = false, isPassNetworkName = false, isPassPassword = false, 
-                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false, isPassInput = false, isPassMade = false, isPassRegulation = false, isPassDate = false;
+            bool isPassModel = false, isPassFCC = false, isPassCM = false, isPassWAN = false, isPassMTA = false, isPassSN = false, isPassNetworkName = false, isPassPassword = false,
+                isPassLeftLabel = false, isPassRightLabel = false, isPassLogo = false, isPassInput = false, isPassMade = false, isPassRegulation = false;//, isPassDate = false;
 
             isScanReady = false;
             isOCRReady = false;
@@ -1154,84 +1196,97 @@ namespace XB8_Program
                     }
                 }
 
-                // NetworkName
+                // NetworkName (SSID)
                 if (GVL.SSID.Contains(GVL.OCR_LastFourNetworkName))
                 {
                     Console.WriteLine(GVL.OCR_NetworkName);
-                    if (GVL.OCR_NetworkName.Equals(GVL.SSID) || FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+
+                    // Exact Match
+                    if (GVL.OCR_NetworkName.Equals(GVL.SSID))
                     {
                         isPassNetworkName = true;
                         AppendLogText($"[{GVL.OCR_NetworkName}] - SSID is valid", Color.Green);
+                        this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Black; }));
+                    }
+                    // Fuzzy Match
+                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy)", Color.Orange);
                         this.Invoke(new Action(() =>
                         {
-                            NETWORKNAME_TextBox.ForeColor = Color.Black;
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
                         }));
                     }
                     else
                     {
-                        string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
-                        if (fallbackSSID == GVL.SSID)
+                        // Tesseract Fallback
+                        string fallbackSSID = ProcessOCR_Tesseract(
+                            new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
+
+                        if (fallbackSSID == GVL.SSID || FuzzyMatch(fallbackSSID, GVL.SSID))
                         {
                             isPassNetworkName = true;
-                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
-                            NETWORKNAME_TextBox.Text = fallbackSSID;
-                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract)", Color.Orange);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.Text = fallbackSSID;
+                                NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            }));
                         }
-                        else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                        //  Levenshtein Fallback 
+                        else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_NetworkName, GVL.SSID))
                         {
                             isPassNetworkName = true;
-                            AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
-                            NETWORKNAME_TextBox.Text = GVL.SSID;
-                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            AppendLogText($"[{GVL.SSID}] - SSID matched (Levenshtein)", Color.Orange);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.Text = GVL.SSID;
+                                NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            }));
                         }
                         else
                         {
                             isPassNetworkName = false;
-
-                            if (string.IsNullOrEmpty(failReason))
-                            {
-                                failReason = "SSID_Not_Match";
-                            }
-
-                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
-                            this.Invoke(new Action(() =>
-                            {
-                                NETWORKNAME_TextBox.ForeColor = Color.Red;
-                            }));
+                            if (string.IsNullOrEmpty(failReason)) failReason = "SSID_Not_Match";
+                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID not matched. SFIS: [{GVL.SSID}], Tesseract: [{fallbackSSID}]", Color.Red);
+                            this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Red; }));
                         }
                     }
                 }
                 else
                 {
-                    string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
-                    if (fallbackSSID == GVL.SSID)
+                    //
+                    string fallbackSSID = ProcessOCR_Tesseract(
+                        new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
+
+                    if (fallbackSSID == GVL.SSID || FuzzyMatch(fallbackSSID, GVL.SSID))
                     {
                         isPassNetworkName = true;
                         AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
-                        NETWORKNAME_TextBox.Text = fallbackSSID;
-                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.Text = fallbackSSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
-                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_NetworkName, GVL.SSID))
                     {
                         isPassNetworkName = true;
-                        AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
-                        NETWORKNAME_TextBox.Text = GVL.SSID;
-                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{GVL.SSID}] - SSID matched (Levenshtein)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
                     else
                     {
                         isPassNetworkName = false;
-
-                        if (string.IsNullOrEmpty(failReason))
-                        {
-                            failReason = "SSID_Not_Match";
-                        }
-
-                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
-                        this.Invoke(new Action(() =>
-                        {
-                            NETWORKNAME_TextBox.ForeColor = Color.Red;
-                        }));
+                        if (string.IsNullOrEmpty(failReason)) failReason = "SSID_Not_Match";
+                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID not matched. SFIS: [{GVL.SSID}], Tesseract: [{fallbackSSID}]", Color.Red);
+                        this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Red; }));
                     }
                 }
 
@@ -1240,39 +1295,52 @@ namespace XB8_Program
                 {
                     isPassPassword = true;
                     AppendLogText($"[{GVL.OCR_Password}] - Password is valid", Color.Green);
+                    this.Invoke(new Action(() => { PASSWORD_TextBox.ForeColor = Color.Black; }));
+                }
+                // Fuzzy Match
+                else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                {
+                    isPassPassword = true;
+                    AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy)", Color.Orange);
                     this.Invoke(new Action(() =>
                     {
-                        PASSWORD_TextBox.ForeColor = Color.Black;
+                        PASSWORD_TextBox.Text = GVL.Password;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
                     }));
                 }
                 else
                 {
-                    string fallbackPassword = ProcessOCR_Tesseract(new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
-                    if (fallbackPassword == GVL.Password)
+                    // Tesseract Fallback
+                    string fallbackPassword = ProcessOCR_Tesseract(
+                        new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
+
+                    if (fallbackPassword == GVL.Password || FuzzyMatchPassword(fallbackPassword, GVL.Password))
                     {
                         isPassPassword = true;
-                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract fallback)", Color.Orange);
-                        PASSWORD_TextBox.Text = fallbackPassword;
-                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PASSWORD_TextBox.Text = fallbackPassword;
+                            PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
-                    else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                    // Levenshtein Fallback 
+                    else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_Password, GVL.Password))
                     {
                         isPassPassword = true;
-                        AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy Match fallback)", Color.Orange);
-                        PASSWORD_TextBox.Text = GVL.Password;
-                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{GVL.Password}] - Password matched (Levenshtein)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PASSWORD_TextBox.Text = GVL.Password;
+                            PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
                     else
                     {
                         isPassPassword = false;
-
-                        if (string.IsNullOrEmpty(failReason))
-                        {
-                            failReason = "Password_Not_Match";
-                        }
-
-                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract fallback = [{fallbackPassword}], SFIS = [{GVL.Password}]", Color.Red);
-                        PASSWORD_TextBox.ForeColor = Color.Red;
+                        if (string.IsNullOrEmpty(failReason)) failReason = "Password_Not_Match";
+                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract: [{fallbackPassword}], SFIS: [{GVL.Password}]", Color.Red);
+                        this.Invoke(new Action(() => { PASSWORD_TextBox.ForeColor = Color.Red; }));
                     }
                 }
 
@@ -1331,15 +1399,15 @@ namespace XB8_Program
                 }
 
                 // DATE PRODUCT
-                isPassDate = ValidateDateProduct();
-                if (!isPassDate && string.IsNullOrEmpty(failReason))
-                {
-                    failReason = "Date_Invalid";
-                }
+                //isPassDate = ValidateDateProduct();
+                //if (!isPassDate && string.IsNullOrEmpty(failReason))
+                //{
+                //    failReason = "Date_Invalid";
+                //}
 
                 this.Invoke(new Action(() =>
                 {
-                    if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo && isPassDate)
+                    if (isPassModel && isPassFCC && isPassCM && isPassWAN && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassLeftLabel && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)// && isPassDate)
                     {
                         isPassBarcode = false;
                         isPassQR = false;
@@ -1792,84 +1860,97 @@ namespace XB8_Program
                 }
 
 
-                // NetworkName
+                // NetworkName (SSID)
                 if (GVL.SSID.Contains(GVL.OCR_LastFourNetworkName))
                 {
                     Console.WriteLine(GVL.OCR_NetworkName);
-                    if (GVL.OCR_NetworkName.Equals(GVL.SSID) || FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+
+                    // Exact Match
+                    if (GVL.OCR_NetworkName.Equals(GVL.SSID))
                     {
                         isPassNetworkName = true;
                         AppendLogText($"[{GVL.OCR_NetworkName}] - SSID is valid", Color.Green);
+                        this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Black; }));
+                    }
+                    // Fuzzy Match
+                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    {
+                        isPassNetworkName = true;
+                        AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy)", Color.Orange);
                         this.Invoke(new Action(() =>
                         {
-                            NETWORKNAME_TextBox.ForeColor = Color.Black;
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
                         }));
                     }
                     else
                     {
-                        string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"SETUP\-[A-Z0-9]{4}$");
-                        if (fallbackSSID == GVL.SSID)
+                        // 3. Tesseract Fallback
+                        string fallbackSSID = ProcessOCR_Tesseract(
+                            new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
+
+                        if (fallbackSSID == GVL.SSID || FuzzyMatch(fallbackSSID, GVL.SSID))
                         {
                             isPassNetworkName = true;
-                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
-                            NETWORKNAME_TextBox.Text = fallbackSSID;
-                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract)", Color.Orange);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.Text = fallbackSSID;
+                                NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            }));
                         }
-                        else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                        // Levenshtein Fallback 
+                        else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_NetworkName, GVL.SSID))
                         {
                             isPassNetworkName = true;
-                            AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
-                            NETWORKNAME_TextBox.Text = GVL.SSID;
-                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            AppendLogText($"[{GVL.SSID}] - SSID matched (Levenshtein)", Color.Orange);
+                            this.Invoke(new Action(() =>
+                            {
+                                NETWORKNAME_TextBox.Text = GVL.SSID;
+                                NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                            }));
                         }
                         else
                         {
                             isPassNetworkName = false;
-
-                            if (string.IsNullOrEmpty(failReason))
-                            {
-                                failReason = "SSID_Not_Match";
-                            }
-
-                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
-                            this.Invoke(new Action(() =>
-                            {
-                                NETWORKNAME_TextBox.ForeColor = Color.Red;
-                            }));
+                            if (string.IsNullOrEmpty(failReason)) failReason = "SSID_Not_Match";
+                            AppendLogText($"[{GVL.OCR_NetworkName}] - SSID not matched. SFIS: [{GVL.SSID}], Tesseract: [{fallbackSSID}]", Color.Red);
+                            this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Red; }));
                         }
                     }
                 }
                 else
                 {
-                    string fallbackSSID = ProcessOCR_Tesseract(new Bitmap(SSIDPicture.Image), GVL.SSID, @"SETUP\-[A-Z0-9]{4}$");
-                    if (fallbackSSID == GVL.SSID)
+                    // 
+                    string fallbackSSID = ProcessOCR_Tesseract(
+                        new Bitmap(SSIDPicture.Image), GVL.SSID, @"^(XF)?SETUP\-[A-Z0-9]{4}$");
+
+                    if (fallbackSSID == GVL.SSID || FuzzyMatch(fallbackSSID, GVL.SSID))
                     {
                         isPassNetworkName = true;
                         AppendLogText($"[{fallbackSSID}] - SSID matched (Tesseract fallback)", Color.Orange);
-                        NETWORKNAME_TextBox.Text = fallbackSSID;
-                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.Text = fallbackSSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
-                    else if (FuzzyMatch(GVL.OCR_NetworkName, GVL.SSID))
+                    else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_NetworkName, GVL.SSID))
                     {
                         isPassNetworkName = true;
-                        AppendLogText($"[{GVL.SSID}] - SSID matched (Fuzzy Matching fallback)", Color.Orange);
-                        NETWORKNAME_TextBox.Text = GVL.SSID;
-                        NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{GVL.SSID}] - SSID matched (Levenshtein)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            NETWORKNAME_TextBox.Text = GVL.SSID;
+                            NETWORKNAME_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
                     else
                     {
                         isPassNetworkName = false;
-
-                        if (string.IsNullOrEmpty(failReason))
-                        {
-                            failReason = "SSID_Not_Match";
-                        }
-
-                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID Label not matched, SFIS SSID = [{GVL.SSID}], fallback = [{fallbackSSID}]", Color.Red);
-                        this.Invoke(new Action(() =>
-                        {
-                            NETWORKNAME_TextBox.ForeColor = Color.Red;
-                        }));
+                        if (string.IsNullOrEmpty(failReason)) failReason = "SSID_Not_Match";
+                        AppendLogText($"[{GVL.OCR_NetworkName}] - SSID not matched. SFIS: [{GVL.SSID}], Tesseract: [{fallbackSSID}]", Color.Red);
+                        this.Invoke(new Action(() => { NETWORKNAME_TextBox.ForeColor = Color.Red; }));
                     }
                 }
 
@@ -1878,39 +1959,52 @@ namespace XB8_Program
                 {
                     isPassPassword = true;
                     AppendLogText($"[{GVL.OCR_Password}] - Password is valid", Color.Green);
+                    this.Invoke(new Action(() => { PASSWORD_TextBox.ForeColor = Color.Black; }));
+                }
+                // Fuzzy Match
+                else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                {
+                    isPassPassword = true;
+                    AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy)", Color.Orange);
                     this.Invoke(new Action(() =>
                     {
-                        PASSWORD_TextBox.ForeColor = Color.Black;
+                        PASSWORD_TextBox.Text = GVL.Password;
+                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
                     }));
                 }
                 else
                 {
-                    string fallbackPassword = ProcessOCR_Tesseract(new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
-                    if (fallbackPassword == GVL.Password)
+                    // Tesseract Fallback
+                    string fallbackPassword = ProcessOCR_Tesseract(
+                        new Bitmap(PasswordPicture.Image), GVL.Password, @"^[a-z0-9]+$");
+
+                    if (fallbackPassword == GVL.Password || FuzzyMatchPassword(fallbackPassword, GVL.Password))
                     {
                         isPassPassword = true;
-                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract fallback)", Color.Orange);
-                        PASSWORD_TextBox.Text = fallbackPassword;
-                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{fallbackPassword}] - Password matched (Tesseract)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PASSWORD_TextBox.Text = fallbackPassword;
+                            PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
-                    else if (FuzzyMatchPassword(GVL.OCR_Password, GVL.Password))
+                    // Levenshtein Fallback 
+                    else if (GVL.Levenshtein && IsMatchWithLevenshtein(GVL.OCR_Password, GVL.Password))
                     {
                         isPassPassword = true;
-                        AppendLogText($"[{GVL.Password}] - Password matched (Fuzzy Match fallback)", Color.Orange);
-                        PASSWORD_TextBox.Text = GVL.Password;
-                        PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        AppendLogText($"[{GVL.Password}] - Password matched (Levenshtein)", Color.Orange);
+                        this.Invoke(new Action(() =>
+                        {
+                            PASSWORD_TextBox.Text = GVL.Password;
+                            PASSWORD_TextBox.ForeColor = Color.DarkOrange;
+                        }));
                     }
                     else
                     {
                         isPassPassword = false;
-
-                        if (string.IsNullOrEmpty(failReason))
-                        {
-                            failReason = "Password_Not_Match";
-                        }
-
-                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract fallback = [{fallbackPassword}], SFIS = [{GVL.Password}]", Color.Red);
-                        PASSWORD_TextBox.ForeColor = Color.Red;
+                        if (string.IsNullOrEmpty(failReason)) failReason = "Password_Not_Match";
+                        AppendLogText($"[{GVL.OCR_Password}] - Password mismatch. Tesseract: [{fallbackPassword}], SFIS: [{GVL.Password}]", Color.Red);
+                        this.Invoke(new Action(() => { PASSWORD_TextBox.ForeColor = Color.Red; }));
                     }
                 }
 
@@ -1951,15 +2045,15 @@ namespace XB8_Program
                 }
 
                 // DATE PRODUCT
-                isPassDate = ValidateDateProduct();
-                if (!isPassDate && string.IsNullOrEmpty(failReason))
-                {
-                    failReason = "Date_Invalid";
-                }
+                //isPassDate = ValidateDateProduct();
+                //if (!isPassDate && string.IsNullOrEmpty(failReason))
+                //{
+                //    failReason = "Date_Invalid";
+                //}
 
                 this.Invoke(new Action(() =>
                 {
-                    if (isPassModel && isPassFCC && isPassCM && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassInput && isPassMade && isPassRegulation && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo && isPassDate)
+                    if (isPassModel && isPassFCC && isPassCM && isPassMTA && isPassSN && isPassPassword && isPassNetworkName && isPassInput && isPassMade && isPassRegulation && isPassRightLabel && isPassBarcode && isPassQR && isPassLogo)// && isPassDate)
                     {
                         isPassBarcode = false;
                         isPassQR = false;
@@ -2146,6 +2240,7 @@ namespace XB8_Program
             }
         }
 
+
         public void AppendLogText(string message, Color color)
         {
             if (richTextBox_Log.InvokeRequired)
@@ -2160,7 +2255,7 @@ namespace XB8_Program
                 AppendLog(message, color);
             }
         }
-
+         
         private void AppendNewEntry(string message, Color color)
         {
             richTextBox_Log.SelectionStart = richTextBox_Log.TextLength;
@@ -2430,6 +2525,7 @@ namespace XB8_Program
 
             return "";
         }
+
 
         private void ProcessBarcodeZbar(Bitmap ImageBitmap)
         {
@@ -2877,16 +2973,16 @@ namespace XB8_Program
 
                             case "LEFTSIDE":
                                 GVL.StartXLEFTSIDE = res.Box.X;
-                                GVL.StartYLEFTSIDE = res.Box.Y;
+                                GVL.StartYLEFTSIDE = res.Box.Y-20;
                                 GVL.WidthLEFTSIDE = res.Box.Width;
-                                GVL.HeightLEFTSIDE = res.Box.Height;
+                                GVL.HeightLEFTSIDE = res.Box.Height+20;
                                 break;
 
                             case "RIGHTSIDE":
                                 GVL.StartXRIGHTSIDE = res.Box.X;
-                                GVL.StartYRIGHTSIDE = res.Box.Y;
+                                GVL.StartYRIGHTSIDE = res.Box.Y-30;
                                 GVL.WidthRIGHTSIDE = res.Box.Width;
-                                GVL.HeightRIGHTSIDE = res.Box.Height;
+                                GVL.HeightRIGHTSIDE = res.Box.Height+30;
                                 break;
 
                             case "LOGOAREA":
@@ -2900,26 +2996,26 @@ namespace XB8_Program
                     }
 
                     // TEMPLATE MATCHING DATE PRODUCT 
-                    Rectangle dateRect = MatchDateRegion(imageBitmap);
+                    //Rectangle dateRect = MatchDateRegion(imageBitmap);
 
-                    if (dateRect.Width > 0 && dateRect.Height > 0)
-                    {
-                        GVL.StartXDATE = dateRect.X;
-                        GVL.StartYDATE = dateRect.Y;
-                        GVL.WidthDATE = dateRect.Width;
-                        GVL.HeightDATE = dateRect.Height;
+                    //if (dateRect.Width > 0 && dateRect.Height > 0)
+                    //{
+                    //    GVL.StartXDATE = dateRect.X;
+                    //    GVL.StartYDATE = dateRect.Y;
+                    //    GVL.WidthDATE = dateRect.Width;
+                    //    GVL.HeightDATE = dateRect.Height;
 
-                        Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
-                    }
-                    else
-                    {
-                        GVL.StartXDATE = 0;
-                        GVL.StartYDATE = 0;
-                        GVL.WidthDATE = 0;
-                        GVL.HeightDATE = 0;
+                    //    Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                    //}
+                    //else
+                    //{
+                    //    GVL.StartXDATE = 0;
+                    //    GVL.StartYDATE = 0;
+                    //    GVL.WidthDATE = 0;
+                    //    GVL.HeightDATE = 0;
 
-                        Console.WriteLine("[DATE] Template matching failed, date region not found");
-                    }
+                    //    Console.WriteLine("[DATE] Template matching failed, date region not found");
+                    //}
 
 
                     Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
@@ -3276,6 +3372,8 @@ namespace XB8_Program
                         string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                         AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
 
+                        ClearAllPictureBoxes();
+
                         List<string> failedParts = new List<string>();
 
                         if (!isPNReady) failedParts.Add("PN");
@@ -3511,9 +3609,9 @@ namespace XB8_Program
 
                             case "REGULATION":
                                 GVL.StartXREGULATION = res.Box.X;
-                                GVL.StartYREGULATION = res.Box.Y;
+                                GVL.StartYREGULATION = res.Box.Y-20;
                                 GVL.WidthREGULATION = res.Box.Width;
-                                GVL.HeightREGULATION = res.Box.Height;
+                                GVL.HeightREGULATION = res.Box.Height+20;
                                 break;
 
                             case "SSID":
@@ -3539,9 +3637,9 @@ namespace XB8_Program
 
                             case "RIGHTSIDE":
                                 GVL.StartXRIGHTSIDE = res.Box.X;
-                                GVL.StartYRIGHTSIDE = res.Box.Y;
+                                GVL.StartYRIGHTSIDE = res.Box.Y-30;
                                 GVL.WidthRIGHTSIDE = res.Box.Width;
-                                GVL.HeightRIGHTSIDE = res.Box.Height;
+                                GVL.HeightRIGHTSIDE = res.Box.Height+30;
                                 break;
 
                             case "LOGOAREA":
@@ -3555,26 +3653,26 @@ namespace XB8_Program
                     }
 
                     // TEMPLATE MATCHING DATE PRODUCT 
-                    Rectangle dateRect = MatchDateRegion(imageBitmap);
+                    //Rectangle dateRect = MatchDateRegion(imageBitmap);
 
-                    if (dateRect.Width > 0 && dateRect.Height > 0)
-                    {
-                        GVL.StartXDATE = dateRect.X;
-                        GVL.StartYDATE = dateRect.Y;
-                        GVL.WidthDATE = dateRect.Width;
-                        GVL.HeightDATE = dateRect.Height;
+                    //if (dateRect.Width > 0 && dateRect.Height > 0)
+                    //{
+                    //    GVL.StartXDATE = dateRect.X;
+                    //    GVL.StartYDATE = dateRect.Y;
+                    //    GVL.WidthDATE = dateRect.Width;
+                    //    GVL.HeightDATE = dateRect.Height;
 
-                        Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
-                    }
-                    else
-                    {
-                        GVL.StartXDATE = 0;
-                        GVL.StartYDATE = 0;
-                        GVL.WidthDATE = 0;
-                        GVL.HeightDATE = 0;
+                    //    Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                    //}
+                    //else
+                    //{
+                    //    GVL.StartXDATE = 0;
+                    //    GVL.StartYDATE = 0;
+                    //    GVL.WidthDATE = 0;
+                    //    GVL.HeightDATE = 0;
 
-                        Console.WriteLine("[DATE] Template matching failed, date region not found");
-                    }
+                    //    Console.WriteLine("[DATE] Template matching failed, date region not found");
+                    //}
 
                     // CROPPING 
                     Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
@@ -3647,6 +3745,7 @@ namespace XB8_Program
                             ProcessBarcodeZbar(cropped);
                             richTextBox_Barcode.AppendText($"{QRResult}\n");
                         }
+
                         else if (region.Key == "BARCODE")
                         {
                             BarcodePicture.Image = cropped;
@@ -4098,6 +4197,8 @@ namespace XB8_Program
                         string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                         AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
 
+                        ClearAllPictureBoxes();
+
                         List<string> failedParts = new List<string>();
 
                         if (!isPNReady) failedParts.Add("PN");
@@ -4477,16 +4578,16 @@ namespace XB8_Program
 
                                 case "LEFTSIDE":
                                     GVL.StartXLEFTSIDE = res.Box.X;
-                                    GVL.StartYLEFTSIDE = res.Box.Y;
+                                    GVL.StartYLEFTSIDE = res.Box.Y-20;
                                     GVL.WidthLEFTSIDE = res.Box.Width;
-                                    GVL.HeightLEFTSIDE = res.Box.Height;
+                                    GVL.HeightLEFTSIDE = res.Box.Height+20;
                                     break;
 
                                 case "RIGHTSIDE":
                                     GVL.StartXRIGHTSIDE = res.Box.X;
-                                    GVL.StartYRIGHTSIDE = res.Box.Y;
+                                    GVL.StartYRIGHTSIDE = res.Box.Y-30;
                                     GVL.WidthRIGHTSIDE = res.Box.Width;
-                                    GVL.HeightRIGHTSIDE = res.Box.Height;
+                                    GVL.HeightRIGHTSIDE = res.Box.Height+30;
                                     break;
 
                                 case "LOGOAREA":
@@ -4500,26 +4601,26 @@ namespace XB8_Program
                         }
 
                         // TEMPLATE MATCHING DATE PRODUCT 
-                        Rectangle dateRect = MatchDateRegion(imageBitmap);
+                        //Rectangle dateRect = MatchDateRegion(imageBitmap);
 
-                        if (dateRect.Width > 0 && dateRect.Height > 0)
-                        {
-                            GVL.StartXDATE = dateRect.X;
-                            GVL.StartYDATE = dateRect.Y;
-                            GVL.WidthDATE = dateRect.Width;
-                            GVL.HeightDATE = dateRect.Height;
+                        //if (dateRect.Width > 0 && dateRect.Height > 0)
+                        //{
+                        //    GVL.StartXDATE = dateRect.X;
+                        //    GVL.StartYDATE = dateRect.Y;
+                        //    GVL.WidthDATE = dateRect.Width;
+                        //    GVL.HeightDATE = dateRect.Height;
 
-                            Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
-                        }
-                        else
-                        {
-                            GVL.StartXDATE = 0;
-                            GVL.StartYDATE = 0;
-                            GVL.WidthDATE = 0;
-                            GVL.HeightDATE = 0;
+                        //    Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                        //}
+                        //else
+                        //{
+                        //    GVL.StartXDATE = 0;
+                        //    GVL.StartYDATE = 0;
+                        //    GVL.WidthDATE = 0;
+                        //    GVL.HeightDATE = 0;
 
-                            Console.WriteLine("[DATE] Template matching failed, date region not found");
-                        }
+                        //    Console.WriteLine("[DATE] Template matching failed, date region not found");
+                        //}
 
                         // CROPPING + OCR
                         Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
@@ -4878,6 +4979,8 @@ namespace XB8_Program
                             string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                             AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
 
+                            ClearAllPictureBoxes();
+
                             List<string> failedParts = new List<string>();
 
                             if (!isPNReady) failedParts.Add("PN");
@@ -5121,9 +5224,9 @@ namespace XB8_Program
 
                                 case "REGULATION":
                                     GVL.StartXREGULATION = res.Box.X;
-                                    GVL.StartYREGULATION = res.Box.Y;
+                                    GVL.StartYREGULATION = res.Box.Y-20;
                                     GVL.WidthREGULATION = res.Box.Width;
-                                    GVL.HeightREGULATION = res.Box.Height;
+                                    GVL.HeightREGULATION = res.Box.Height+20;
                                     break;
 
                                 case "SSID":
@@ -5149,9 +5252,9 @@ namespace XB8_Program
 
                                 case "RIGHTSIDE":
                                     GVL.StartXRIGHTSIDE = res.Box.X;
-                                    GVL.StartYRIGHTSIDE = res.Box.Y;
+                                    GVL.StartYRIGHTSIDE = res.Box.Y-30;
                                     GVL.WidthRIGHTSIDE = res.Box.Width;
-                                    GVL.HeightRIGHTSIDE = res.Box.Height;
+                                    GVL.HeightRIGHTSIDE = res.Box.Height+30;
                                     break;
 
                                 case "LOGOAREA":
@@ -5165,26 +5268,26 @@ namespace XB8_Program
                         }
 
                         // TEMPLATE MATCHING DATE PRODUCT 
-                        Rectangle dateRect = MatchDateRegion(imageBitmap);
+                        //Rectangle dateRect = MatchDateRegion(imageBitmap);
 
-                        if (dateRect.Width > 0 && dateRect.Height > 0)
-                        {
-                            GVL.StartXDATE = dateRect.X;
-                            GVL.StartYDATE = dateRect.Y;
-                            GVL.WidthDATE = dateRect.Width;
-                            GVL.HeightDATE = dateRect.Height;
+                        //if (dateRect.Width > 0 && dateRect.Height > 0)
+                        //{
+                        //    GVL.StartXDATE = dateRect.X;
+                        //    GVL.StartYDATE = dateRect.Y;
+                        //    GVL.WidthDATE = dateRect.Width;
+                        //    GVL.HeightDATE = dateRect.Height;
 
-                            Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
-                        }
-                        else
-                        {
-                            GVL.StartXDATE = 0;
-                            GVL.StartYDATE = 0;
-                            GVL.WidthDATE = 0;
-                            GVL.HeightDATE = 0;
+                        //    Console.WriteLine($"[DATE] Region saved: ({GVL.StartXDATE},{GVL.StartYDATE}) {GVL.WidthDATE}x{GVL.HeightDATE}");
+                        //}
+                        //else
+                        //{
+                        //    GVL.StartXDATE = 0;
+                        //    GVL.StartYDATE = 0;
+                        //    GVL.WidthDATE = 0;
+                        //    GVL.HeightDATE = 0;
 
-                            Console.WriteLine("[DATE] Template matching failed, date region not found");
-                        }
+                        //    Console.WriteLine("[DATE] Template matching failed, date region not found");
+                        //}
 
                         // CROPPING 
                         Dictionary<string, Rectangle> regions = new Dictionary<string, Rectangle>
@@ -5709,6 +5812,8 @@ namespace XB8_Program
                             string time = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}";
                             AppendNewEntry($"[{time}] ===NEW ENTRY===", Color.Black);
 
+                            ClearAllPictureBoxes();
+
                             List<string> failedParts = new List<string>();
 
                             if (!isPNReady) failedParts.Add("PN");
@@ -5921,6 +6026,49 @@ namespace XB8_Program
             label_pass.Text = PassCount.ToString();
             label_ng.Text = NgCount.ToString();
             label_yieldrate.Text = yieldRate.ToString("F2") + " %";
+        }
+
+        private void ClearAllPictureBoxes()
+        {
+            this.Invoke(new Action(() =>
+            {
+                ModelPicture.Image?.Dispose();
+                ModelPicture.Image = null;
+
+                FCCIDPicture.Image?.Dispose();
+                FCCIDPicture.Image = null;
+
+                SSIDPicture.Image?.Dispose();
+                SSIDPicture.Image = null;
+
+                PasswordPicture.Image?.Dispose();
+                PasswordPicture.Image = null;
+
+                FCCRegulationPicture.Image?.Dispose();
+                FCCRegulationPicture.Image = null;
+
+                SNPicture.Image?.Dispose();
+                SNPicture.Image = null;
+
+                InputPicture.Image?.Dispose();
+                InputPicture.Image = null;
+
+                QRPicture.Image?.Dispose();
+                QRPicture.Image = null;
+
+                BarcodePicture.Image?.Dispose();
+                BarcodePicture.Image = null;
+
+                MACPicture.Image?.Dispose();
+                MACPicture.Image = null;
+
+                RightPicture.Image?.Dispose();
+                RightPicture.Image = null;
+
+                MadePicture.Image?.Dispose();
+                MadePicture.Image = null;
+
+            }));
         }
     }
 }
